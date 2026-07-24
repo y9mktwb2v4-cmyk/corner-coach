@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corner — Bag Coach</title>
+<style>
+  :root{
+    --ink:#131110;
+    --canvas:#e9e4d8;
+    --canvas-dim:#d8d2c2;
+    --leather:#7a2418;
+    --leather-bright:#b8321f;
+    --tape:#c9a24b;
+    --line:#3a3530;
+    --ok:#5f7a52;
+    --info:#3a6b7a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--canvas);
+    font-family:'Arial Narrow', Arial, sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:24px 14px 60px;
+  }
+  .rig{ width:100%; max-width:560px; }
+  .header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:3px solid var(--leather);
+    padding-bottom:10px;
+    margin-bottom:18px;
+  }
+  .brand{
+    font-size:13px; letter-spacing:0.35em; text-transform:uppercase;
+    color:var(--tape); font-weight:700;
+  }
+  .round-count{ font-size:13px; letter-spacing:0.1em; color:var(--canvas-dim); }
+  .header-right{ display:flex; align-items:center; gap:12px; }
+  .icon-btn{
+    flex:none; width:34px; height:34px; padding:0; border-radius:50%;
+    background:var(--canvas-dim); color:var(--ink); font-size:16px;
+    display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
+  }
+  .settings-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,9,8,0.72);
+    align-items:flex-start; justify-content:center; padding:40px 16px; z-index:50; overflow-y:auto;
+  }
+  .settings-overlay.open{ display:flex; }
+  .settings-panel{ width:100%; max-width:520px; }
+  .settings-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .settings-title{
+    font-size:15px; letter-spacing:0.3em; text-transform:uppercase; color:var(--tape); font-weight:700;
+  }
+  .settings-head .icon-btn{ background:var(--canvas); color:var(--ink); }
+  .profile-row{ display:flex; gap:8px; margin-bottom:18px; }
+  .profile-pill{
+    flex:1; padding:12px 10px; text-align:center; border-radius:2px; cursor:pointer;
+    background:var(--canvas-dim); color:#5a554b; font-weight:800; font-size:14px; letter-spacing:0.03em;
+    border:2px solid transparent; text-transform:uppercase;
+  }
+  .profile-pill.active{ background:var(--leather-bright); color:var(--canvas); border-color:var(--leather-bright); }
+
+  .section-title{
+    font-size:12px; letter-spacing:0.25em; text-transform:uppercase;
+    color:var(--tape); font-weight:700; margin:26px 0 10px;
+  }
+  .section-title:first-of-type{ margin-top:0; }
+
+  /* Picker */
+  .picker{
+    background:var(--canvas); color:var(--ink); border-radius:2px; padding:16px 16px 10px;
+    position:relative;
+  }
+  .picker.locked{ opacity:0.5; pointer-events:none; }
+  .slider-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .slider-row label{ font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:#6b6558; font-weight:700; }
+  .slider-value{ font-size:20px; font-weight:800; color:var(--leather-bright); }
+  input[type="range"]{
+    width:100%; margin:6px 0 16px; -webkit-appearance:none; appearance:none;
+    height:8px; border-radius:4px; background:var(--canvas-dim); outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:26px; height:26px; border-radius:50%;
+    background:var(--leather-bright); border:3px solid var(--canvas); box-shadow:0 0 0 1px var(--line);
+    cursor:pointer;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:26px; height:26px; border-radius:50%; background:var(--leather-bright);
+    border:3px solid var(--canvas); box-shadow:0 0 0 1px var(--line); cursor:pointer;
+  }
+  .variants{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .variant{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px; border-radius:2px; border:2px solid var(--line);
+    background:var(--canvas-dim); cursor:pointer;
+  }
+  .variant.selected{ border-color:var(--leather-bright); background:#f1e6d0; }
+  .variant .vname{ font-weight:800; font-size:15px; text-transform:uppercase; }
+  .variant .vdesc{ font-size:12px; color:#5a554b; margin-top:2px; }
+  .variant .vlen{ font-size:12px; font-weight:700; color:var(--leather-bright); white-space:nowrap; margin-left:10px; }
+  .lock-note{ font-size:11px; color:#7a746a; padding:6px 2px 10px; }
+
+  /* Main card */
+  .card{
+    background:var(--canvas); color:var(--ink);
+    border-radius:2px; padding:26px 22px 22px; position:relative; overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:8px;
+    background:repeating-linear-gradient(45deg, var(--leather) 0 14px, var(--tape) 14px 28px);
+  }
+  .kind{
+    font-size:12px; letter-spacing:0.3em; text-transform:uppercase;
+    color:var(--leather-bright); font-weight:700; margin-top:10px;
+  }
+  .nownext{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:6px 0 14px; }
+  .nownext .label{ font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:#6b6558; font-weight:700; margin-bottom:2px; }
+  .now .label{ color:var(--leather-bright); }
+  .nownext .val{ font-size:clamp(20px, 6.5vw, 30px); font-weight:800; line-height:1.05; text-transform:uppercase; }
+  .next .val{ color:#4a453d; }
+  .detail{ font-size:15px; color:#4a453d; margin-bottom:12px; }
+  .tip{
+    background:var(--canvas-dim); border-left:4px solid var(--leather);
+    padding:10px 12px; font-size:14px; line-height:1.45; color:#2c2924; margin-bottom:18px;
+  }
+  .tip b{ color:var(--leather-bright); }
+  .caption{
+    background:#efe9db; border:1px dashed var(--line); border-radius:2px;
+    padding:10px 12px; font-size:14px; line-height:1.4; color:#2c2924; margin-bottom:18px; font-style:italic;
+  }
+  .caption b{ font-style:normal; color:var(--tape); text-transform:uppercase; font-size:11px; letter-spacing:0.15em; display:block; margin-bottom:3px; }
+  .hidden{ display:none !important; }
+  .clockrow{ text-align:center; margin-bottom:14px; }
+  .clock{ font-size:clamp(56px, 18vw, 82px); font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:0.02em; line-height:1; }
+  .clock-label{ font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:#6b6558; font-weight:700; }
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px; }
+  .stat{ background:var(--canvas-dim); border-radius:2px; padding:10px 12px; border-left:5px solid transparent; }
+  .stat .label{ font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#6b6558; font-weight:700; }
+  .stat .value{ font-size:clamp(22px, 6vw, 30px); font-weight:800; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .stat-seg{ border-left-color:var(--leather-bright); }
+  .stat-seg .value{ color:var(--leather-bright); }
+  .stat-elapsed{ border-left-color:var(--tape); }
+  .stat-elapsed .value{ color:#8a6a1f; }
+  .stat-remaining{ border-left-color:var(--ok); }
+  .stat-remaining .value{ color:var(--ok); }
+  .stat-clock{ border-left-color:var(--info); }
+  .stat-clock .value{ color:var(--info); }
+  .bar-track{ height:6px; background:var(--line); border-radius:3px; margin:20px 0 4px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--leather-bright); width:0%; transition:width 0.9s linear; }
+  .segbar{ display:flex; gap:3px; margin-top:10px; }
+  .seg{ flex:1; height:4px; background:var(--line); border-radius:2px; }
+  .seg.done{ background:var(--tape); }
+  .seg.active{ background:var(--leather-bright); }
+
+  .controls{ display:flex; gap:10px; margin-top:14px; }
+  button{
+    flex:1; padding:14px 10px; font-size:14px; font-weight:700; letter-spacing:0.08em;
+    text-transform:uppercase; border:none; border-radius:2px; cursor:pointer; font-family:inherit;
+  }
+  #startBtn{ background:var(--leather-bright); color:var(--canvas); }
+  #pauseBtn{ background:var(--canvas-dim); color:var(--ink); border:1px solid var(--line); }
+  #resetBtn{ background:transparent; color:var(--canvas-dim); border:1px solid var(--line); }
+  button:disabled{ opacity:0.4; cursor:default; }
+
+  /* Voice panel */
+  .panel{ background:var(--canvas); color:var(--ink); border-radius:2px; padding:16px; }
+  .panel label{ display:block; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#6b6558; margin-bottom:6px; font-weight:700; }
+  select{ width:100%; padding:10px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:2px; }
+  input[type="text"]{ width:100%; padding:10px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:2px; }
+  .voice-note{ font-size:11px; color:#5a554b; margin-top:8px; line-height:1.5; }
+  .test-row{ display:flex; gap:10px; margin-top:10px; }
+  #testVoiceBtn{ flex:none; padding:8px 14px; background:transparent; color:var(--leather-bright); border:1px solid var(--line); font-size:12px; }
+
+  /* Calendar */
+  .cal-panel{ background:var(--canvas); color:var(--ink); border-radius:2px; padding:16px; }
+  .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cal-nav button{ flex:none; width:34px; padding:8px 0; background:var(--canvas-dim); color:var(--ink); font-size:16px; }
+  .cal-month{ font-weight:800; font-size:16px; text-transform:uppercase; letter-spacing:0.05em; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:12px; }
+  .cal-dow{ font-size:10px; text-align:center; color:#8a8478; font-weight:700; padding-bottom:2px; }
+  .cal-day{
+    aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border-radius:2px; background:var(--canvas-dim); font-size:13px; font-weight:700; position:relative;
+  }
+  .cal-day.empty{ background:transparent; }
+  .cal-day.worked{ background:var(--ok); color:#fff; }
+  .cal-day.today{ outline:2px solid var(--leather-bright); outline-offset:-2px; }
+  .cal-day .mins{ font-size:9px; font-weight:600; opacity:0.9; }
+  .cal-stats{ display:flex; gap:10px; margin-bottom:12px; }
+  .cal-stat{ flex:1; background:var(--canvas-dim); border-radius:2px; padding:8px 10px; }
+  .cal-stat .label{ font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:#6b6558; font-weight:700; }
+  .cal-stat .value{ font-size:20px; font-weight:800; }
+  .totals-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .totals-row .cal-stat{ border-left:4px solid transparent; }
+  .totals-week{ border-left-color:var(--leather-bright) !important; }
+  .totals-week .value{ color:var(--leather-bright); }
+  .totals-month{ border-left-color:var(--tape) !important; }
+  .totals-month .value{ color:#8a6a1f; }
+  .totals-year{ border-left-color:var(--ok) !important; }
+  .totals-year .value{ color:var(--ok); }
+  .cal-hint{ font-size:11px; color:#7a746a; text-align:center; margin:-4px 0 10px; }
+  .cal-day.worked{ cursor:pointer; }
+  .cal-day.selected{ outline:3px solid var(--leather-bright); outline-offset:-3px; }
+  .log-back{ cursor:pointer; color:var(--leather-bright); font-weight:700; font-size:12px; padding:2px 2px 10px; }
+  .log-list{ max-height:180px; overflow-y:auto; border-top:1px solid var(--line); padding-top:8px; }
+  .log-row{ display:flex; justify-content:space-between; align-items:center; padding:6px 2px; font-size:13px; border-bottom:1px solid #d0cab8; }
+  .log-row .lr-date{ font-weight:700; width:78px; flex:none; }
+  .log-row .lr-label{ flex:1; color:#4a453d; }
+  .log-row .lr-mins{ font-weight:700; margin-right:8px; }
+  .log-row button{ flex:none; width:auto; padding:4px 8px; font-size:11px; background:transparent; color:var(--leather-bright); border:1px solid var(--line); }
+  .log-empty{ font-size:13px; color:#7a746a; padding:8px 2px; }
+  .sync-note{ font-size:11px; color:#8a6a3a; padding:6px 2px 0; min-height:14px; }
+  .clear-row{ margin-top:10px; text-align:right; }
+  .clear-row button{ flex:none; width:auto; padding:8px 12px; font-size:11px; background:transparent; color:#7a746a; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="rig">
+  <div class="header">
+    <div class="brand">Corner Coach</div>
+    <div class="header-right">
+      <div class="round-count" id="roundCount">Segment 1 / 10</div>
+      <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙</button>
+    </div>
+  </div>
+
+  <div class="profile-row" id="profileRow"></div>
+
+  <div class="section-title">Choose your routine</div>
+  <div class="picker" id="picker">
+    <div class="slider-row">
+      <label>Duration</label>
+      <div class="slider-value" id="durationValue">20 min</div>
+    </div>
+    <input type="range" id="durationSlider" min="10" max="30" step="2" value="20">
+    <div class="variants" id="variants"></div>
+    <div class="lock-note" id="lockNote">Reset the timer to change duration or style.</div>
+  </div>
+
+  <div class="section-title">Workout</div>
+  <div class="card">
+    <div class="kind" id="kind">Ready</div>
+    <div class="nownext">
+      <div class="now"><div class="label">Now</div><div class="val" id="activity">—</div></div>
+      <div class="next"><div class="label">Next</div><div class="val" id="upNext">—</div></div>
+    </div>
+    <div class="detail" id="detail">Pick a routine above, then tap start.</div>
+    <div class="tip" id="tipBox"><b>Before you start:</b> Have water nearby, clear space around the bag, and check your wraps or gloves are snug.</div>
+    <div class="caption" id="captionBox"><b>Coach:</b> <span id="captionText">—</span></div>
+
+    <div class="clockrow">
+      <div class="clock-label">Time left, this segment</div>
+      <div class="clock" id="clock">00:00</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat stat-seg"><div class="label">Segment Elapsed</div><div class="value" id="segElapsed">00:00</div></div>
+      <div class="stat stat-elapsed"><div class="label">Workout Elapsed</div><div class="value" id="totalElapsed">00:00</div></div>
+      <div class="stat stat-remaining"><div class="label">Workout Remaining</div><div class="value" id="totalRemaining">00:00</div></div>
+      <div class="stat stat-clock"><div class="label">Current Time</div><div class="value" id="wallClock">--:--</div></div>
+    </div>
+
+    <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+    <div class="segbar" id="segbar"></div>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <div class="settings-title">Settings</div>
+        <button id="closeSettingsBtn" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+      <div class="section-title" style="margin-top:0;">Profiles</div>
+      <div class="panel">
+        <label for="profile1Name">Profile 1 name</label>
+        <input type="text" id="profile1Name" maxlength="24" placeholder="Profile 1">
+        <label for="profile2Name" style="margin-top:12px;">Profile 2 name</label>
+        <input type="text" id="profile2Name" maxlength="24" placeholder="Profile 2">
+        <div class="voice-note">Each profile keeps its own separate training log — switch profiles from the pills on the main screen. Saved to this device's browser storage; it won't follow you to a different phone or browser unless you're on a paid Claude plan viewing the published version, in which case it also syncs to your account.</div>
+      </div>
+
+      <div class="section-title">Coach voice</div>
+      <div class="panel">
+        <label for="voiceSelect">Voice (UK / US / IE only)</label>
+        <select id="voiceSelect"><option>Loading voices…</option></select>
+        <div class="test-row"><button id="testVoiceBtn">Test voice</button></div>
+        <div class="voice-note">
+          Only English voices tagged UK, US, or Irish are listed here. This is limited to whatever your device/browser has installed —
+          add more under: macOS/iOS Settings → Accessibility → Spoken Content → Voices; Android Settings → Accessibility → Text-to-speech; Windows Settings → Time & Language → Speech.
+          Reopen this page after installing a new one.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Training log</div>
+  <div class="cal-panel">
+    <div class="totals-row">
+      <div class="cal-stat totals-week"><div class="label">This Week</div><div class="value" id="weekTotal">0 min</div></div>
+      <div class="cal-stat totals-month"><div class="label">This Month</div><div class="value" id="calYearMonthTotal">0 min</div></div>
+      <div class="cal-stat totals-year"><div class="label">This Year</div><div class="value" id="yearTotal">0 min</div></div>
+    </div>
+    <div class="cal-nav">
+      <button id="prevMonth">‹</button>
+      <div class="cal-month" id="calMonthLabel">—</div>
+      <button id="nextMonth">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-hint">Tap a day to see that day's sessions.</div>
+    <div class="cal-stats">
+      <div class="cal-stat"><div class="label">Shown Month</div><div class="value" id="monthMins">0 min</div></div>
+      <div class="cal-stat"><div class="label">Sessions</div><div class="value" id="monthSessions">0</div></div>
+    </div>
+    <div class="log-list" id="logList"></div>
+    <div class="sync-note" id="syncNote"></div>
+    <div class="clear-row"><button id="clearLogBtn">Clear history</button></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Technique tip library ---------------- */
+const TIPS = {
+  warmup: "Keep it loose and controlled — this is about raising your heart rate and greasing the joints, not stretching cold muscle.",
+  bagCombo: "Hands up by your cheeks between punches. Rotate your hips and pivot the back foot on every hook — power comes from the ground up, not the arm.",
+  bagPower: "Commit fully to each shot and exhale sharply as you strike, then reset your guard immediately.",
+  bagPowerKnees: "Turn your hips and legs into every punch. On knees, grip the bag lightly and drive the knee straight up through the target.",
+  bagSpeed: "Stay relaxed through the shoulders, snap punches back to guard immediately, and keep your breathing rhythmic.",
+  bagKick: "Keep your guard up right after you kick, pivot your supporting foot, and keep kicks controlled rather than rushed.",
+  bagFootwork: "Stay on the balls of your feet and take small steps — circle around the bag rather than standing square in front of it.",
+  bagFreestyle: "Mix everything you've drilled today. Keep moving, keep your guard up between combinations, and don't stand flat-footed.",
+  bagMixedPower: "Blend power shots with knees, staying tight defensively between combinations.",
+  bagSpeedKicks: "Combine fast hands with light kicks — prioritize balance and guard over power here.",
+  squatJump: "Land soft with bent knees and chest up, feet shoulder-width apart. Drive through your heels on the way up.",
+  pushup: "Keep a straight line from head to heels — no sagging hips. Hands under shoulders, elbows at roughly forty-five degrees, full range of motion.",
+  mountainClimber: "Keep your hips low and level — don't let them pike up. Drive the knees to your chest quickly while bracing your core.",
+  plank: "Squeeze your glutes and brace your abs. Don't let your hips sag or pike up — keep your neck neutral.",
+  burpee: "Land the jump softly and keep the movement fluid rather than rushed — control beats speed here.",
+  lunge: "Front knee tracks over your ankle, not past your toes. Back knee lightly grazes the floor, chest tall.",
+  highKnees: "Drive your knees to hip height quickly, stay light on your feet, and pump your arms.",
+  coreTwist: "Rotate from your ribcage, not just your arms. Keep your hips relatively square and the tempo controlled.",
+  cooldown: "Hold each stretch for twenty to thirty seconds and breathe deeply — this brings your heart rate down smoothly."
+};
+
+/* ---------------- Mid-segment encouragement library ---------------- */
+const ENCOURAGE = {
+  warmup: ["Keep it easy, just wake the body up.", "Nice and loose — you're just getting the blood moving."],
+  bagCombo: ["Good rhythm — keep that guard up between combos.", "Snap the punches back, don't leave your hand out there.", "Turn the hip on the hook, you've got this."],
+  bagPower: ["Commit to every shot — make it count.", "Big breath out on the power punch. Keep driving.", "Stay heavy on your feet and put your weight behind it."],
+  bagPowerKnees: ["Drive that knee straight through the bag.", "Turn your hips into it — legs do the work.", "Keep your balance on the supporting leg."],
+  bagSpeed: ["Stay relaxed, let your hands fly.", "Keep it light and fast — don't tense up.", "Breathe — don't hold your breath through the speed work."],
+  bagKick: ["Guard straight back up after every kick.", "Pivot that standing foot, stay balanced.", "Controlled kicks — quality over speed here."],
+  bagFootwork: ["Stay on your toes, keep circling.", "Small steps — don't overreach for the bag.", "Keep your feet moving between every combo."],
+  bagFreestyle: ["However it comes, keep moving — you're doing great.", "Mix it up, stay loose, stay sharp.", "This is the fun part — let it flow."],
+  bagMixedPower: ["Blend the power and the knees smoothly.", "Stay tight defensively between shots."],
+  bagSpeedKicks: ["Fast hands, light feet — find the rhythm.", "Balance first, speed second."],
+  squatJump: ["Soft landings, chest up — you're almost there.", "Explode up, land quiet."],
+  pushup: ["Keep that line straight from head to heel.", "Full range — down and all the way up."],
+  mountainClimber: ["Knees driving, core tight — keep the pace.", "Stay low, stay quick."],
+  plank: ["Squeeze the glutes, breathe steady — hold it.", "You've got this, don't let the hips drop."],
+  burpee: ["Smooth and controlled — find your rhythm.", "One at a time, keep the form clean."],
+  lunge: ["Front knee tracking straight, chest tall.", "Control the descent, drive back up."],
+  highKnees: ["Quick feet, pump those arms.", "Light and fast — knees up high."],
+  coreTwist: ["Controlled rotation, not just arms.", "Keep the tempo steady through the twist."],
+  cooldown: ["Breathe deep, let the heart rate settle.", "Nice work today — enjoy the stretch."]
+};
+function pickEncouragement(tipKey){
+  const bank = ENCOURAGE[tipKey];
+  if(!bank || !bank.length) return null;
+  return bank[Math.floor(Math.random()*bank.length)];
+}
+
+/* ---------------- Exercise type lookups ---------------- */
+const BAGTYPES = {
+  bagCombo: { name:"Bag: Combos", detail:"Jab, cross, hook combinations at an easy, technical pace." },
+  bagPower: { name:"Bag: Power Shots", detail:"Heavy, committed power punches." },
+  bagPowerKnees: { name:"Bag: Power + Knees", detail:"Power punches mixed with knee strikes." },
+  bagSpeed: { name:"Bag: Speed Round", detail:"Light, fast punches — focus on hand speed." },
+  bagKick: { name:"Bag: Combos + Kicks", detail:"Punch combinations mixed with kicks." },
+  bagFootwork: { name:"Bag: Footwork Circles", detail:"Stay light, circle the bag between combos." },
+  bagFreestyle: { name:"Bag: Freestyle", detail:"Mix everything you've drilled — keep moving." },
+  bagMixedPower: { name:"Bag: Mixed Power", detail:"Power shots blended with knees." },
+  bagSpeedKicks: { name:"Bag: Speed + Kicks", detail:"Fast hands combined with light kicks." }
+};
+const STRENGTHTYPES = {
+  squatJump: { name:"Squat Jumps", detail:"Explosive squat jumps." },
+  pushup: { name:"Push-Ups", detail:"Standard push-ups, steady pace." },
+  mountainClimber: { name:"Mountain Climbers", detail:"Fast-paced mountain climbers." },
+  plank: { name:"Plank", detail:"Hold a strong plank." },
+  burpee: { name:"Burpees", detail:"Full burpees, steady pace." },
+  lunge: { name:"Lunges", detail:"Alternating forward lunges." },
+  highKnees: { name:"High Knees", detail:"Fast, light high knees on the spot." },
+  coreTwist: { name:"Core Twists", detail:"Seated or standing rotational core twists." }
+};
+
+/* ---------------- Style presets ---------------- */
+const STYLES = [
+  { id:'classic', label:"Boxer's Classic", desc:"Balanced technique and power",
+    bagCycle:['bagCombo','bagPowerKnees','bagSpeed','bagKick','bagFreestyle'],
+    strCycle:['squatJump','pushup','mountainClimber','plank','burpee'] },
+  { id:'power', label:"Power & Core", desc:"Power shots with extra core work",
+    bagCycle:['bagCombo','bagPowerKnees','bagPower','bagMixedPower','bagFreestyle'],
+    strCycle:['plank','coreTwist','burpee','plank','coreTwist'] },
+  { id:'kick', label:"Kickboxer Mix", desc:"Kicks and footwork throughout",
+    bagCycle:['bagKick','bagFootwork','bagSpeedKicks','bagFreestyle','bagKick'],
+    strCycle:['highKnees','lunge','mountainClimber','coreTwist','highKnees'] }
+];
+
+/* ---------------- Routine generator ---------------- */
+/* Builds an exact-length routine for any slider value (10-30 min, step 2) and a chosen style. */
+function buildRoutine(durationMin, style){
+  const warmup = 60, cooldown = 60;
+  const totalSec = durationMin * 60;
+  const remaining = totalSec - warmup - cooldown;
+
+  let numPairs = Math.max(3, Math.round((durationMin - 2) / 4));
+  while(numPairs > 1 && numPairs * 60 >= remaining) numPairs--;
+
+  const strengthTotal = numPairs * 60;
+  const bagTotal = remaining - strengthTotal;
+  const base = Math.floor(bagTotal / numPairs);
+  const remainder = bagTotal - base * numPairs;
+
+  const segments = [];
+  segments.push({ kind:"Warm-up", secs:warmup, name:"Warm Up",
+    detail:"Arm circles, torso twists, shadow boxing, bodyweight squats.", tip:TIPS.warmup, tipKey:"warmup" });
+
+  for(let i=0; i<numPairs; i++){
+    const bagKey = style.bagCycle[i % style.bagCycle.length];
+    const strKey = style.strCycle[i % style.strCycle.length];
+    const bagSecs = base + (i === numPairs-1 ? remainder : 0);
+    const bagInfo = BAGTYPES[bagKey];
+    segments.push({ kind:"Heavy Bag — Round " + (i+1), secs:bagSecs, name:bagInfo.name,
+      detail:bagInfo.detail, tip:TIPS[bagKey], tipKey:bagKey });
+    const strInfo = STRENGTHTYPES[strKey];
+    segments.push({ kind:"Strength", secs:60, name:strInfo.name,
+      detail:strInfo.detail, tip:TIPS[strKey], tipKey:strKey });
+  }
+
+  segments.push({ kind:"Cool-down", secs:cooldown, name:"Cool Down",
+    detail:"Static stretching — shoulders, hip flexors, quads, calves.", tip:TIPS.cooldown, tipKey:"cooldown" });
+
+  return segments;
+}
+
+function buildSay(seg){
+  if(seg.kind === "Warm-up") return "Let's begin. Warm up time. " + seg.detail;
+  if(seg.kind === "Cool-down") return "Great work. Cool down now. " + seg.detail;
+  if(seg.kind.indexOf("Heavy Bag") === 0){
+    const roundLabel = seg.kind.replace("Heavy Bag — ", "");
+    return roundLabel + ". On the bag. " + seg.detail;
+  }
+  return seg.name + ". " + seg.detail;
+}
+
+/* ---------------- State ---------------- */
+let selectedStyle = STYLES[0];
+let activeDuration = 20;
+let currentRoutine = { id:selectedStyle.id+'-'+activeDuration, label:selectedStyle.label, desc:selectedStyle.desc, duration:activeDuration, segments:buildRoutine(activeDuration, selectedStyle) };
+let idx = -1;
+let remaining = 0;
+let timerId = null;
+let running = false;
+let elapsedBefore = 0;
+let selectedVoice = null;
+let availableVoices = [];
+
+/* ---------------- DOM refs ---------------- */
+const clockEl = document.getElementById('clock');
+const activityEl = document.getElementById('activity');
+const kindEl = document.getElementById('kind');
+const detailEl = document.getElementById('detail');
+const tipBox = document.getElementById('tipBox');
+const upNext = document.getElementById('upNext');
+const barFill = document.getElementById('barFill');
+const roundCount = document.getElementById('roundCount');
+const segbar = document.getElementById('segbar');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const segElapsedEl = document.getElementById('segElapsed');
+const totalElapsedEl = document.getElementById('totalElapsed');
+const totalRemainingEl = document.getElementById('totalRemaining');
+const wallClockEl = document.getElementById('wallClock');
+const voiceSelect = document.getElementById('voiceSelect');
+const testVoiceBtn = document.getElementById('testVoiceBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const settingsOverlay = document.getElementById('settingsOverlay');
+
+settingsBtn.addEventListener('click', ()=> settingsOverlay.classList.add('open'));
+closeSettingsBtn.addEventListener('click', ()=> settingsOverlay.classList.remove('open'));
+settingsOverlay.addEventListener('click', (e)=>{
+  if(e.target === settingsOverlay) settingsOverlay.classList.remove('open');
+});
+const pickerEl = document.getElementById('picker');
+const variantsEl = document.getElementById('variants');
+const durationSlider = document.getElementById('durationSlider');
+const durationValueEl = document.getElementById('durationValue');
+const captionTextEl = document.getElementById('captionText');
+
+/* ---------------- Picker ---------------- */
+function rebuildCurrentRoutine(){
+  currentRoutine = {
+    id: selectedStyle.id + '-' + activeDuration,
+    label: selectedStyle.label,
+    desc: selectedStyle.desc,
+    duration: activeDuration,
+    segments: buildRoutine(activeDuration, selectedStyle)
+  };
+}
+
+durationSlider.addEventListener('input', ()=>{
+  activeDuration = parseInt(durationSlider.value, 10);
+  durationValueEl.textContent = activeDuration + ' min';
+  if(running) return;
+  rebuildCurrentRoutine();
+  applyIdleDisplay();
+});
+
+function renderVariants(){
+  variantsEl.innerHTML = '';
+  STYLES.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'variant' + (selectedStyle.id===r.id ? ' selected' : '');
+    card.innerHTML = '<div><div class="vname">'+r.label+'</div><div class="vdesc">'+r.desc+'</div></div>';
+    card.addEventListener('click', ()=>{
+      if(running) return;
+      selectedStyle = r;
+      renderVariants();
+      rebuildCurrentRoutine();
+      applyIdleDisplay();
+    });
+    variantsEl.appendChild(card);
+  });
+}
+
+function lockPicker(lock){
+  pickerEl.classList.toggle('locked', lock);
+}
+
+/* ---------------- Timer helpers ---------------- */
+function fmt(s){
+  const m = Math.floor(s/60);
+  const sec = s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+function totalSecsOf(r){ return r.segments.reduce((a,s)=>a+s.secs,0); }
+
+function updateWallClock(){
+  const now = new Date();
+  wallClockEl.textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+updateWallClock();
+setInterval(updateWallClock, 1000);
+
+function speak(text){
+  if(captionTextEl) captionTextEl.textContent = text;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.02;
+    u.pitch = 1.0;
+    if(selectedVoice) u.voice = selectedVoice;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------------- Screen stay-awake (wake lock + fallback) ---------------- */
+let wakeLock = null;
+let noSleepVideo = null;
+
+function ensureNoSleepVideo(){
+  if(noSleepVideo) return noSleepVideo;
+  try{
+    const canvas = document.createElement('canvas');
+    canvas.width = 2; canvas.height = 2;
+    const ctx = canvas.getContext('2d');
+    ctx.fillRect(0,0,2,2);
+    if(!canvas.captureStream) return null;
+    const stream = canvas.captureStream(1);
+    const video = document.createElement('video');
+    video.setAttribute('playsinline','');
+    video.setAttribute('muted','');
+    video.muted = true;
+    video.loop = true;
+    video.style.position = 'fixed';
+    video.style.width = '1px';
+    video.style.height = '1px';
+    video.style.opacity = '0';
+    video.style.pointerEvents = 'none';
+    video.srcObject = stream;
+    document.body.appendChild(video);
+    noSleepVideo = video;
+    return video;
+  }catch(e){ return null; }
+}
+
+async function enableStayAwake(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', ()=>{ wakeLock = null; });
+    }
+  }catch(e){ /* often blocked when embedded in another site's iframe — fallback below still runs */ }
+  const v = ensureNoSleepVideo();
+  if(v){
+    try{ await v.play(); }catch(e){ /* needs a user gesture — this call originates from one */ }
+  }
+}
+
+function disableStayAwake(){
+  if(wakeLock){
+    wakeLock.release().catch(()=>{});
+    wakeLock = null;
+  }
+  if(noSleepVideo){
+    try{ noSleepVideo.pause(); }catch(e){}
+  }
+}
+
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState === 'visible' && running){
+    if(!wakeLock) await enableStayAwake();
+  }
+});
+
+function beep(freq, dur){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.value = freq;
+    o.type = 'square';
+    g.gain.value = 0.15;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.stop(ctx.currentTime + dur);
+  }catch(e){}
+}
+
+/* ---------------- Voice picker (UK / US / IE only) ---------------- */
+const ALLOWED_LOCALES = ['en-gb','en-us','en-ie'];
+function normLang(l){ return (l||'').toLowerCase().replace('_','-'); }
+function localeTag(l){
+  const n = normLang(l);
+  if(n.indexOf('en-gb')===0) return 'UK';
+  if(n.indexOf('en-us')===0) return 'US';
+  if(n.indexOf('en-ie')===0) return 'IE';
+  return l;
+}
+
+function populateVoices(){
+  const all = window.speechSynthesis.getVoices();
+  if(!all.length) return;
+  let filtered = all.filter(v => ALLOWED_LOCALES.some(loc => normLang(v.lang).indexOf(loc)===0));
+  let fallback = false;
+  if(!filtered.length){ filtered = all; fallback = true; }
+  availableVoices = filtered;
+  voiceSelect.innerHTML = '';
+  if(fallback){
+    const note = document.createElement('option');
+    note.disabled = true;
+    note.textContent = 'No UK/US/IE voices found — showing all';
+    voiceSelect.appendChild(note);
+  }
+  filtered.forEach((v,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = '[' + localeTag(v.lang) + '] ' + v.name + (v.default ? ' — default' : '');
+    voiceSelect.appendChild(opt);
+  });
+  const defaultIdx = filtered.findIndex(v=>v.default);
+  voiceSelect.value = defaultIdx >= 0 ? defaultIdx : 0;
+  selectedVoice = filtered[voiceSelect.value] || null;
+}
+populateVoices();
+if('onvoiceschanged' in window.speechSynthesis){
+  window.speechSynthesis.onvoiceschanged = populateVoices;
+}
+voiceSelect.addEventListener('change', ()=>{
+  selectedVoice = availableVoices[voiceSelect.value] || null;
+});
+testVoiceBtn.addEventListener('click', ()=>{
+  speak("This is your corner coach voice. Hands up, let's work.");
+});
+
+/* ---------------- Segment rendering ---------------- */
+function rebuildSegbar(){
+  segbar.innerHTML = '';
+  currentRoutine.segments.forEach(()=>{
+    const d = document.createElement('div');
+    d.className = 'seg';
+    segbar.appendChild(d);
+  });
+}
+
+function renderSegBar(){
+  Array.from(segbar.children).forEach((el,i)=>{
+    el.classList.remove('active','done');
+    if(i < idx) el.classList.add('done');
+    if(i === idx) el.classList.add('active');
+  });
+}
+
+function updateStats(){
+  const total = totalSecsOf(currentRoutine);
+  const segElapsedSecs = currentRoutine.segments[idx].secs - Math.max(remaining,0);
+  segElapsedEl.textContent = fmt(segElapsedSecs);
+  const totalElapsedSecs = elapsedBefore + segElapsedSecs;
+  totalElapsedEl.textContent = fmt(totalElapsedSecs);
+  totalRemainingEl.textContent = fmt(Math.max(total - totalElapsedSecs, 0));
+  barFill.style.width = Math.min(100, (totalElapsedSecs/total)*100) + '%';
+}
+
+let midpointMark = -1;
+let midpointSaid = false;
+
+function loadSegment(i){
+  const s = currentRoutine.segments[i];
+  kindEl.textContent = s.kind;
+  activityEl.textContent = s.name;
+  detailEl.textContent = s.detail;
+  tipBox.innerHTML = '<b>Technique:</b> ' + s.tip;
+  const next = currentRoutine.segments[i+1];
+  upNext.textContent = next ? next.name : 'Finish';
+  roundCount.textContent = 'Segment ' + (i+1) + ' / ' + currentRoutine.segments.length;
+  remaining = s.secs;
+  clockEl.textContent = fmt(remaining);
+  renderSegBar();
+  updateStats();
+  speak(buildSay(s));
+  midpointMark = Math.floor(s.secs/2);
+  midpointSaid = false;
+}
+
+function tick(){
+  remaining--;
+  clockEl.textContent = fmt(Math.max(remaining,0));
+  updateStats();
+  if(remaining === 10) beep(660,0.15);
+  if(remaining <= 3 && remaining > 0) beep(880,0.1);
+  if(!midpointSaid && remaining === midpointMark && midpointMark > 8){
+    midpointSaid = true;
+    const line = pickEncouragement(currentRoutine.segments[idx].tipKey);
+    if(line) speak(line);
+  }
+  if(remaining <= 0){
+    elapsedBefore += currentRoutine.segments[idx].secs;
+    advance();
+  }
+}
+
+function advance(){
+  idx++;
+  if(idx >= currentRoutine.segments.length){
+    finish();
+    return;
+  }
+  loadSegment(idx);
+}
+
+function finish(){
+  clearInterval(timerId);
+  running = false;
+  beep(520,0.2);
+  setTimeout(()=>beep(780,0.25), 220);
+  kindEl.textContent = 'Complete';
+  activityEl.textContent = 'Nice work';
+  detailEl.textContent = 'Routine finished — grab some water and let your heart rate settle.';
+  tipBox.innerHTML = '<b>Recovery tip:</b> Walk it out for a minute or two rather than stopping dead — it helps blood pressure ease down smoothly.';
+  upNext.textContent = '—';
+  barFill.style.width = '100%';
+  const total = totalSecsOf(currentRoutine);
+  segElapsedEl.textContent = fmt(currentRoutine.segments[currentRoutine.segments.length-1].secs);
+  totalElapsedEl.textContent = fmt(total);
+  totalRemainingEl.textContent = '00:00';
+  clockEl.textContent = '00:00';
+  renderSegBar();
+  Array.from(segbar.children).forEach(el=>{ el.classList.remove('active'); el.classList.add('done'); });
+  startBtn.disabled = false;
+  startBtn.textContent = 'Restart';
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = 'Pause';
+  lockPicker(false);
+  disableStayAwake();
+  speak("That's the routine done. Nice work. Walk it out for a minute and let your heart rate settle.");
+  logWorkout(currentRoutine, Math.round(total/60));
+}
+
+function start(){
+  if(running) return;
+  running = true;
+  startBtn.disabled = true;
+  pauseBtn.disabled = false;
+  pauseBtn.textContent = 'Pause';
+  lockPicker(true);
+  enableStayAwake();
+  if(idx === -1){
+    idx = 0;
+    elapsedBefore = 0;
+    loadSegment(idx);
+  }
+  timerId = setInterval(tick, 1000);
+}
+
+function pause(){
+  running = false;
+  clearInterval(timerId);
+  window.speechSynthesis.cancel();
+  disableStayAwake();
+  pauseBtn.textContent = 'Resume';
+}
+function resume(){
+  running = true;
+  pauseBtn.textContent = 'Pause';
+  enableStayAwake();
+  timerId = setInterval(tick, 1000);
+}
+function togglePause(){ running ? pause() : resume(); }
+
+function applyIdleDisplay(){
+  rebuildSegbar();
+  const first = currentRoutine.segments[0];
+  kindEl.textContent = 'Ready';
+  activityEl.textContent = currentRoutine.label;
+  detailEl.textContent = currentRoutine.desc + ' — ' + currentRoutine.duration + ' minutes total.';
+  tipBox.innerHTML = '<b>Before you start:</b> Have water nearby, clear space around the bag, and check your wraps or gloves are snug.';
+  clockEl.textContent = fmt(first.secs);
+  upNext.textContent = first.name;
+  roundCount.textContent = 'Segment 1 / ' + currentRoutine.segments.length;
+  barFill.style.width = '0%';
+  segElapsedEl.textContent = '00:00';
+  totalElapsedEl.textContent = '00:00';
+  totalRemainingEl.textContent = fmt(totalSecsOf(currentRoutine));
+  Array.from(segbar.children).forEach(el=>el.classList.remove('active','done'));
+  startBtn.disabled = false;
+  startBtn.textContent = 'Start';
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = 'Pause';
+}
+
+function reset(){
+  clearInterval(timerId);
+  window.speechSynthesis.cancel();
+  disableStayAwake();
+  running = false;
+  idx = -1;
+  remaining = 0;
+  elapsedBefore = 0;
+  lockPicker(false);
+  applyIdleDisplay();
+  renderVariants();
+}
+
+startBtn.addEventListener('click', start);
+pauseBtn.addEventListener('click', togglePause);
+resetBtn.addEventListener('click', reset);
+
+/* ---------------- Profiles ---------------- */
+const profileRowEl = document.getElementById('profileRow');
+const profile1Input = document.getElementById('profile1Name');
+const profile2Input = document.getElementById('profile2Name');
+
+let profiles = [{ id:'p1', name:'Profile 1' }, { id:'p2', name:'Profile 2' }];
+let activeProfileId = 'p1';
+
+/* ---------------- Storage adapter ----------------
+   window.storage (Anthropic's persistent storage) only works on Pro/Max/Team/
+   Enterprise, and only once published. On Free plans, or when this file is
+   self-hosted/opened locally, it either doesn't exist or always fails.
+   localStorage works in any normal browser tab (self-hosted, Home Screen,
+   etc.) but is blocked inside Claude's own in-chat artifact preview.
+   This adapter tries window.storage first, then always also writes to
+   localStorage, so whichever environment you're in, something sticks. */
+const store = {
+  async get(key){
+    try{
+      if(window.storage){
+        const res = await window.storage.get(key, false);
+        if(res && res.value !== undefined) return res.value;
+      }
+    }catch(e){ /* not available on this plan/context — fall through */ }
+    try{
+      const v = localStorage.getItem(key);
+      return v === null ? undefined : v;
+    }catch(e){ return undefined; }
+  },
+  async set(key, value){
+    let cloudOk = false;
+    try{
+      if(window.storage){
+        await window.storage.set(key, value, false);
+        cloudOk = true;
+      }
+    }catch(e){ /* fall through to local */ }
+    let localOk = false;
+    try{
+      localStorage.setItem(key, value);
+      localOk = true;
+    }catch(e){ /* private browsing or storage disabled */ }
+    return cloudOk || localOk;
+  }
+};
+
+async function loadProfiles(){
+  try{
+    const raw = await store.get('profiles');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed.list && parsed.list.length === 2) profiles = parsed.list;
+      if(parsed.activeId) activeProfileId = parsed.activeId;
+    }
+  }catch(e){ /* first run — defaults stand */ }
+  renderProfileRow();
+  profile1Input.value = profiles[0].name;
+  profile2Input.value = profiles[1].name;
+}
+
+let profileSaveTimer = null;
+async function saveProfiles(){
+  const ok = await store.set('profiles', JSON.stringify({ list:profiles, activeId:activeProfileId }));
+  if(!ok) setSyncNote('Profile changes aren\'t saving right now — see the note below about why.');
+}
+
+function renderProfileRow(){
+  profileRowEl.innerHTML = '';
+  profiles.forEach(p=>{
+    const pill = document.createElement('div');
+    pill.className = 'profile-pill' + (p.id === activeProfileId ? ' active' : '');
+    pill.textContent = p.name;
+    pill.addEventListener('click', ()=>{
+      if(p.id === activeProfileId) return;
+      activeProfileId = p.id;
+      selectedDay = null;
+      saveProfiles();
+      renderProfileRow();
+      renderCalendar();
+    });
+    profileRowEl.appendChild(pill);
+  });
+}
+
+function wireProfileInput(input, index, fallback){
+  input.addEventListener('input', ()=>{
+    profiles[index].name = input.value;
+    renderProfileRow();
+    clearTimeout(profileSaveTimer);
+    profileSaveTimer = setTimeout(saveProfiles, 400);
+  });
+  input.addEventListener('blur', ()=>{
+    if(!profiles[index].name.trim()){
+      profiles[index].name = fallback;
+      input.value = fallback;
+      renderProfileRow();
+    }
+    clearTimeout(profileSaveTimer);
+    saveProfiles();
+  });
+}
+wireProfileInput(profile1Input, 0, 'Profile 1');
+wireProfileInput(profile2Input, 1, 'Profile 2');
+
+// Flush any pending saves immediately if the page is backgrounded or closed,
+// since iOS can suspend a page before a debounce timer or blur event fires.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden'){
+    clearTimeout(profileSaveTimer);
+    saveProfiles();
+    saveLog();
+  }
+});
+window.addEventListener('pagehide', ()=>{
+  clearTimeout(profileSaveTimer);
+  saveProfiles();
+  saveLog();
+});
+
+/* ---------------- Training log (persistent storage) ---------------- */
+const calGrid = document.getElementById('calGrid');
+const calMonthLabel = document.getElementById('calMonthLabel');
+const monthMinsEl = document.getElementById('monthMins');
+const monthSessionsEl = document.getElementById('monthSessions');
+const weekTotalEl = document.getElementById('weekTotal');
+const calYearMonthTotalEl = document.getElementById('calYearMonthTotal');
+const yearTotalEl = document.getElementById('yearTotal');
+const logListEl = document.getElementById('logList');
+const clearLogBtn = document.getElementById('clearLogBtn');
+const prevMonthBtn = document.getElementById('prevMonth');
+const nextMonthBtn = document.getElementById('nextMonth');
+
+let logEntries = [];
+let viewYear, viewMonth; // viewMonth 0-11
+let selectedDay = null;
+const today = new Date();
+viewYear = today.getFullYear();
+viewMonth = today.getMonth();
+
+const DOW = ['S','M','T','W','T','F','S'];
+
+async function loadLog(){
+  try{
+    const raw = await store.get('workout-log');
+    logEntries = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    logEntries = [];
+  }
+  renderCalendar();
+}
+
+function setSyncNote(text){
+  const el = document.getElementById('syncNote');
+  if(el) el.textContent = text || '';
+}
+
+async function saveLog(){
+  const ok = await store.set('workout-log', JSON.stringify(logEntries));
+  setSyncNote(ok ? '' : 'Workouts aren\'t saving right now — see the note below about why.');
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function logWorkout(routineObj, minutes){
+  logEntries.push({
+    profileId: activeProfileId,
+    date: todayStr(),
+    label: routineObj.label,
+    minutes: minutes,
+    loggedAt: new Date().toISOString()
+  });
+  saveLog();
+  renderCalendar();
+}
+
+function entryBelongsToActiveProfile(e){
+  return e.profileId === activeProfileId || (!e.profileId && activeProfileId === 'p1');
+}
+
+function computeRunningTotals(profileEntries){
+  const now = new Date();
+  const dow = now.getDay();
+  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+  const toStr = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const weekStartStr = toStr(weekStart), weekEndStr = toStr(weekEnd);
+  let week=0, month=0, year=0;
+  profileEntries.forEach(e=>{
+    if(e.date >= weekStartStr && e.date <= weekEndStr) week += e.minutes;
+    const d = new Date(e.date+'T00:00:00');
+    if(d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth()) month += e.minutes;
+    if(d.getFullYear()===now.getFullYear()) year += e.minutes;
+  });
+  return { week, month, year };
+}
+
+function renderCalendar(){
+  const profileEntries = logEntries.filter(entryBelongsToActiveProfile);
+
+  const totals = computeRunningTotals(profileEntries);
+  weekTotalEl.textContent = totals.week + ' min';
+  calYearMonthTotalEl.textContent = totals.month + ' min';
+  yearTotalEl.textContent = totals.year + ' min';
+
+  calMonthLabel.textContent = new Date(viewYear, viewMonth, 1).toLocaleDateString([], {month:'long', year:'numeric'});
+  calGrid.innerHTML = '';
+  DOW.forEach(d=>{
+    const el = document.createElement('div');
+    el.className = 'cal-dow';
+    el.textContent = d;
+    calGrid.appendChild(el);
+  });
+
+  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  const monthEntries = profileEntries.filter(e=>{
+    const d = new Date(e.date+'T00:00:00');
+    return d.getFullYear()===viewYear && d.getMonth()===viewMonth;
+  });
+  const byDay = {};
+  monthEntries.forEach(e=>{
+    const day = parseInt(e.date.split('-')[2],10);
+    byDay[day] = (byDay[day]||0) + e.minutes;
+  });
+
+  for(let i=0;i<firstDow;i++){
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    calGrid.appendChild(el);
+  }
+  const todayD = new Date();
+  for(let day=1; day<=daysInMonth; day++){
+    const el = document.createElement('div');
+    el.className = 'cal-day' + (byDay[day] ? ' worked' : '') + (selectedDay===day ? ' selected' : '');
+    if(todayD.getFullYear()===viewYear && todayD.getMonth()===viewMonth && todayD.getDate()===day){
+      el.classList.add('today');
+    }
+    const num = document.createElement('div');
+    num.textContent = day;
+    el.appendChild(num);
+    if(byDay[day]){
+      const m = document.createElement('div');
+      m.className = 'mins';
+      m.textContent = byDay[day]+'m';
+      el.appendChild(m);
+      el.addEventListener('click', ()=>{
+        selectedDay = (selectedDay === day) ? null : day;
+        renderCalendar();
+      });
+    }
+    calGrid.appendChild(el);
+  }
+
+  const totalMins = monthEntries.reduce((a,e)=>a+e.minutes,0);
+  monthMinsEl.textContent = totalMins + ' min';
+  monthSessionsEl.textContent = monthEntries.length;
+
+  renderLogList(monthEntries);
+}
+
+function renderLogList(monthEntries){
+  logListEl.innerHTML = '';
+
+  let entriesToShow = monthEntries;
+  if(selectedDay){
+    entriesToShow = monthEntries.filter(e => parseInt(e.date.split('-')[2],10) === selectedDay);
+    const back = document.createElement('div');
+    back.className = 'log-back';
+    const dLabel = new Date(viewYear, viewMonth, selectedDay).toLocaleDateString([], {weekday:'long', month:'short', day:'numeric'});
+    back.textContent = '‹ ' + dLabel + ' — back to month';
+    back.addEventListener('click', ()=>{ selectedDay = null; renderCalendar(); });
+    logListEl.appendChild(back);
+  }
+
+  if(entriesToShow.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'log-empty';
+    empty.textContent = selectedDay ? 'No sessions that day.' : 'No workouts logged this month yet.';
+    logListEl.appendChild(empty);
+    return;
+  }
+
+  entriesToShow
+    .slice()
+    .sort((a,b)=> b.date.localeCompare(a.date) || b.loggedAt.localeCompare(a.loggedAt))
+    .forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'log-row';
+      const dLabel = new Date(e.date+'T00:00:00').toLocaleDateString([], {month:'short', day:'numeric'});
+      row.innerHTML = '<div class="lr-date">'+dLabel+'</div><div class="lr-label">'+e.label+'</div><div class="lr-mins">'+e.minutes+'m</div>';
+      const del = document.createElement('button');
+      del.textContent = 'Remove';
+      del.addEventListener('click', ()=>{
+        const i = logEntries.findIndex(x=>x.loggedAt===e.loggedAt);
+        if(i>-1){ logEntries.splice(i,1); saveLog(); renderCalendar(); }
+      });
+      row.appendChild(del);
+      logListEl.appendChild(row);
+    });
+}
+
+prevMonthBtn.addEventListener('click', ()=>{
+  viewMonth--;
+  if(viewMonth<0){ viewMonth=11; viewYear--; }
+  selectedDay = null;
+  renderCalendar();
+});
+nextMonthBtn.addEventListener('click', ()=>{
+  viewMonth++;
+  if(viewMonth>11){ viewMonth=0; viewYear++; }
+  selectedDay = null;
+  renderCalendar();
+});
+
+let clearArmed = false;
+clearLogBtn.addEventListener('click', ()=>{
+  if(!clearArmed){
+    clearArmed = true;
+    clearLogBtn.textContent = 'Tap again to confirm';
+    setTimeout(()=>{ clearArmed=false; clearLogBtn.textContent='Clear history'; }, 3000);
+    return;
+  }
+  logEntries = logEntries.filter(e => !entryBelongsToActiveProfile(e));
+  saveLog();
+  clearArmed = false;
+  clearLogBtn.textContent = 'Clear history';
+  selectedDay = null;
+  renderCalendar();
+});
+
+/* ---------------- Init ---------------- */
+renderVariants();
+durationSlider.value = activeDuration;
+durationValueEl.textContent = activeDuration + ' min';
+applyIdleDisplay();
+loadProfiles().then(loadLog);
+</script>
+</body>
+</html>
