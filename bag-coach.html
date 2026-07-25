@@ -59,7 +59,8 @@
     font-size:15px; letter-spacing:0.3em; text-transform:uppercase; color:var(--tape); font-weight:700;
   }
   .settings-head .icon-btn{ background:var(--canvas); color:var(--ink); }
-  .profile-row{ display:flex; gap:8px; margin-bottom:18px; }
+  .profile-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+  .profile-row.locked{ opacity:0.5; pointer-events:none; }
   .profile-pill{
     flex:1; padding:12px 10px; text-align:center; border-radius:2px; cursor:pointer;
     background:var(--canvas-dim); color:#5a554b; font-weight:800; font-size:14px; letter-spacing:0.03em;
@@ -174,6 +175,11 @@
   .panel label{ display:block; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:#6b6558; margin-bottom:6px; font-weight:700; }
   select{ width:100%; padding:10px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:2px; }
   input[type="text"]{ width:100%; padding:10px; font-size:14px; font-family:inherit; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:2px; }
+  .profile-field{ margin-bottom:14px; }
+  .profile-field:last-of-type{ margin-bottom:0; }
+  .profile-field-row{ display:flex; gap:8px; }
+  .profile-field-row input[type="text"]{ flex:1; }
+  .profile-field-row select{ flex:none; width:90px; padding:10px 6px; font-size:13px; }
   .voice-note{ font-size:11px; color:#5a554b; margin-top:8px; line-height:1.5; }
   .test-row{ display:flex; gap:10px; margin-top:10px; }
   #testVoiceBtn{ flex:none; padding:8px 14px; background:transparent; color:var(--leather-bright); border:1px solid var(--line); font-size:12px; }
@@ -285,11 +291,35 @@
       </div>
       <div class="section-title" style="margin-top:0;">Profiles</div>
       <div class="panel">
-        <label for="profile1Name">Profile 1 name</label>
-        <input type="text" id="profile1Name" maxlength="24" placeholder="Profile 1">
-        <label for="profile2Name" style="margin-top:12px;">Profile 2 name</label>
-        <input type="text" id="profile2Name" maxlength="24" placeholder="Profile 2">
-        <div class="voice-note">Each profile keeps its own separate training log — switch profiles from the pills on the main screen. Saved to this device's browser storage; it won't follow you to a different phone or browser unless you're on a paid Claude plan viewing the published version, in which case it also syncs to your account.</div>
+        <div class="profile-field">
+          <label for="profile1Name">Profile 1 name</label>
+          <div class="profile-field-row">
+            <input type="text" id="profile1Name" maxlength="24" placeholder="Profile 1">
+            <select id="profile1Type"><option value="adult">Adult</option><option value="kid">Kid</option></select>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label for="profile2Name">Profile 2 name</label>
+          <div class="profile-field-row">
+            <input type="text" id="profile2Name" maxlength="24" placeholder="Profile 2">
+            <select id="profile2Type"><option value="adult">Adult</option><option value="kid">Kid</option></select>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label for="profile3Name">Profile 3 name</label>
+          <div class="profile-field-row">
+            <input type="text" id="profile3Name" maxlength="24" placeholder="Kid 1">
+            <select id="profile3Type"><option value="adult">Adult</option><option value="kid">Kid</option></select>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label for="profile4Name">Profile 4 name</label>
+          <div class="profile-field-row">
+            <input type="text" id="profile4Name" maxlength="24" placeholder="Kid 2">
+            <select id="profile4Type"><option value="adult">Adult</option><option value="kid">Kid</option></select>
+          </div>
+        </div>
+        <div class="voice-note">Each profile keeps its own separate training log — switch profiles from the pills on the main screen. "Kid" profiles get shorter durations (8-16 min) and gentler, medium-intensity routine styles instead of the adult ones. Saved to this device's browser storage; it won't follow you to a different phone or browser unless you're on a paid Claude plan viewing the published version, in which case it also syncs to your account.</div>
       </div>
 
       <div class="section-title">Coach voice</div>
@@ -407,28 +437,43 @@ const STRENGTHTYPES = {
 
 /* ---------------- Style presets ---------------- */
 const STYLES = [
-  { id:'classic', label:"Boxer's Classic", desc:"Balanced technique and power",
+  { id:'classic', label:"Boxer's Classic", desc:"Balanced technique and power", mode:'adult',
     bagCycle:['bagCombo','bagPowerKnees','bagSpeed','bagKick','bagFreestyle'],
     strCycle:['squatJump','pushup','mountainClimber','plank','burpee'] },
-  { id:'power', label:"Power & Core", desc:"Power shots with extra core work",
+  { id:'power', label:"Power & Core", desc:"Power shots with extra core work", mode:'adult',
     bagCycle:['bagCombo','bagPowerKnees','bagPower','bagMixedPower','bagFreestyle'],
     strCycle:['plank','coreTwist','burpee','plank','coreTwist'] },
-  { id:'kick', label:"Kickboxer Mix", desc:"Kicks and footwork throughout",
+  { id:'kick', label:"Kickboxer Mix", desc:"Kicks and footwork throughout", mode:'adult',
     bagCycle:['bagKick','bagFootwork','bagSpeedKicks','bagFreestyle','bagKick'],
-    strCycle:['highKnees','lunge','mountainClimber','coreTwist','highKnees'] }
+    strCycle:['highKnees','lunge','mountainClimber','coreTwist','highKnees'] },
+
+  { id:'junior-combos', label:"Junior Combos", desc:"Technique and footwork, medium pace", mode:'kid',
+    bagCycle:['bagCombo','bagFootwork','bagSpeed','bagKick','bagCombo'],
+    strCycle:['squatJump','highKnees','mountainClimber','lunge','coreTwist'] },
+  { id:'junior-allrounder', label:"Junior All-Rounder", desc:"A bit of everything, medium pace", mode:'kid',
+    bagCycle:['bagKick','bagCombo','bagFootwork','bagSpeed','bagKick'],
+    strCycle:['plank','pushup','highKnees','squatJump','lunge'] }
 ];
 
 /* ---------------- Routine generator ---------------- */
-/* Builds an exact-length routine for any slider value (10-30 min, step 2) and a chosen style. */
+/* Builds an exact-length routine for any slider value and a chosen style.
+   Adult: 10-30 min step 2, 60s warmup/cooldown, 60s strength blocks.
+   Kid:   8-16 min step 2, 45s warmup/cooldown, 30s strength blocks — shorter,
+   snappier rounds suited to younger attention spans, medium intensity only. */
 function buildRoutine(durationMin, style){
-  const warmup = 60, cooldown = 60;
+  const isKid = style.mode === 'kid';
+  const warmup = isKid ? 45 : 60;
+  const cooldown = isKid ? 45 : 60;
+  const strengthLen = isKid ? 30 : 60;
   const totalSec = durationMin * 60;
   const remaining = totalSec - warmup - cooldown;
 
-  let numPairs = Math.max(3, Math.round((durationMin - 2) / 4));
-  while(numPairs > 1 && numPairs * 60 >= remaining) numPairs--;
+  let numPairs = isKid
+    ? Math.max(3, Math.round((durationMin - 3) / 3))
+    : Math.max(3, Math.round((durationMin - 2) / 4));
+  while(numPairs > 1 && numPairs * strengthLen >= remaining) numPairs--;
 
-  const strengthTotal = numPairs * 60;
+  const strengthTotal = numPairs * strengthLen;
   const bagTotal = remaining - strengthTotal;
   const base = Math.floor(bagTotal / numPairs);
   const remainder = bagTotal - base * numPairs;
@@ -445,7 +490,7 @@ function buildRoutine(durationMin, style){
     segments.push({ kind:"Heavy Bag — Round " + (i+1), secs:bagSecs, name:bagInfo.name,
       detail:bagInfo.detail, tip:TIPS[bagKey], tipKey:bagKey });
     const strInfo = STRENGTHTYPES[strKey];
-    segments.push({ kind:"Strength", secs:60, name:strInfo.name,
+    segments.push({ kind:"Strength", secs:strengthLen, name:strInfo.name,
       detail:strInfo.detail, tip:TIPS[strKey], tipKey:strKey });
   }
 
@@ -532,7 +577,8 @@ durationSlider.addEventListener('input', ()=>{
 
 function renderVariants(){
   variantsEl.innerHTML = '';
-  STYLES.forEach(r=>{
+  const type = activeProfile().type;
+  STYLES.filter(r=>r.mode===type).forEach(r=>{
     const card = document.createElement('div');
     card.className = 'variant' + (selectedStyle.id===r.id ? ' selected' : '');
     card.innerHTML = '<div><div class="vname">'+r.label+'</div><div class="vdesc">'+r.desc+'</div></div>';
@@ -549,6 +595,7 @@ function renderVariants(){
 
 function lockPicker(lock){
   pickerEl.classList.toggle('locked', lock);
+  profileRowEl.classList.toggle('locked', lock);
 }
 
 /* ---------------- Timer helpers ---------------- */
@@ -872,11 +919,36 @@ resetBtn.addEventListener('click', reset);
 
 /* ---------------- Profiles ---------------- */
 const profileRowEl = document.getElementById('profileRow');
-const profile1Input = document.getElementById('profile1Name');
-const profile2Input = document.getElementById('profile2Name');
+const profileInputs = [
+  document.getElementById('profile1Name'),
+  document.getElementById('profile2Name'),
+  document.getElementById('profile3Name'),
+  document.getElementById('profile4Name')
+];
+const profileTypeSelects = [
+  document.getElementById('profile1Type'),
+  document.getElementById('profile2Type'),
+  document.getElementById('profile3Type'),
+  document.getElementById('profile4Type')
+];
 
-let profiles = [{ id:'p1', name:'Profile 1' }, { id:'p2', name:'Profile 2' }];
+const DEFAULT_PROFILES = [
+  { id:'p1', name:'Profile 1', type:'adult' },
+  { id:'p2', name:'Profile 2', type:'adult' },
+  { id:'p3', name:'Kid 1', type:'kid' },
+  { id:'p4', name:'Kid 2', type:'kid' }
+];
+let profiles = DEFAULT_PROFILES.map(p=>({...p}));
 let activeProfileId = 'p1';
+
+function activeProfile(){
+  return profiles.find(p=>p.id===activeProfileId) || profiles[0];
+}
+
+const DURATION_RANGE = {
+  adult: { min:10, max:30, def:20 },
+  kid:   { min:8,  max:16, def:10 }
+};
 
 /* ---------------- Storage adapter ----------------
    window.storage (Anthropic's persistent storage) only works on Pro/Max/Team/
@@ -921,13 +993,25 @@ async function loadProfiles(){
     const raw = await store.get('profiles');
     if(raw){
       const parsed = JSON.parse(raw);
-      if(parsed.list && parsed.list.length === 2) profiles = parsed.list;
+      if(parsed.list && parsed.list.length){
+        // Merge with defaults so older 2-profile saves gain the 2 new kid
+        // slots, and any entry missing a type gets a sensible default.
+        profiles = DEFAULT_PROFILES.map((def, i)=>{
+          const existing = parsed.list[i];
+          return existing
+            ? { id:def.id, name:existing.name || def.name, type:existing.type || def.type }
+            : { ...def };
+        });
+      }
       if(parsed.activeId) activeProfileId = parsed.activeId;
     }
   }catch(e){ /* first run — defaults stand */ }
   renderProfileRow();
-  profile1Input.value = profiles[0].name;
-  profile2Input.value = profiles[1].name;
+  profiles.forEach((p,i)=>{
+    profileInputs[i].value = p.name;
+    profileTypeSelects[i].value = p.type;
+  });
+  applyProfileTypeDefaults();
 }
 
 let profileSaveTimer = null;
@@ -943,18 +1027,39 @@ function renderProfileRow(){
     pill.className = 'profile-pill' + (p.id === activeProfileId ? ' active' : '');
     pill.textContent = p.name;
     pill.addEventListener('click', ()=>{
-      if(p.id === activeProfileId) return;
+      if(running || p.id === activeProfileId) return;
       activeProfileId = p.id;
       selectedDay = null;
       saveProfiles();
       renderProfileRow();
       renderCalendar();
+      applyProfileTypeDefaults();
     });
     profileRowEl.appendChild(pill);
   });
 }
 
-function wireProfileInput(input, index, fallback){
+function applyProfileTypeDefaults(){
+  const prof = activeProfile();
+  const range = DURATION_RANGE[prof.type] || DURATION_RANGE.adult;
+  durationSlider.min = range.min;
+  durationSlider.max = range.max;
+  if(activeDuration < range.min || activeDuration > range.max){
+    activeDuration = range.def;
+  }
+  durationSlider.value = activeDuration;
+  durationValueEl.textContent = activeDuration + ' min';
+  if(!selectedStyle || selectedStyle.mode !== prof.type){
+    selectedStyle = STYLES.find(s=>s.mode===prof.type) || STYLES[0];
+  }
+  rebuildCurrentRoutine();
+  renderVariants();
+  if(!running) applyIdleDisplay();
+}
+
+function wireProfileInput(index, fallback){
+  const input = profileInputs[index];
+  const typeSelect = profileTypeSelects[index];
   input.addEventListener('input', ()=>{
     profiles[index].name = input.value;
     renderProfileRow();
@@ -970,9 +1075,16 @@ function wireProfileInput(input, index, fallback){
     clearTimeout(profileSaveTimer);
     saveProfiles();
   });
+  typeSelect.addEventListener('change', ()=>{
+    profiles[index].type = typeSelect.value;
+    saveProfiles();
+    if(profiles[index].id === activeProfileId) applyProfileTypeDefaults();
+  });
 }
-wireProfileInput(profile1Input, 0, 'Profile 1');
-wireProfileInput(profile2Input, 1, 'Profile 2');
+wireProfileInput(0, 'Profile 1');
+wireProfileInput(1, 'Profile 2');
+wireProfileInput(2, 'Kid 1');
+wireProfileInput(3, 'Kid 2');
 
 // Flush any pending saves immediately if the page is backgrounded or closed,
 // since iOS can suspend a page before a debounce timer or blur event fires.
