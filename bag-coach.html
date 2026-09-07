@@ -137,7 +137,33 @@
     padding:10px 12px; font-size:14px; line-height:1.4; color:#2c2924; margin-bottom:18px; font-style:italic;
   }
   .caption b{ font-style:normal; color:var(--tape); text-transform:uppercase; font-size:11px; letter-spacing:0.15em; display:block; margin-bottom:3px; }
+  .exercise-media{ display:flex; align-items:center; gap:14px; background:var(--canvas-dim); border-radius:2px; padding:10px 12px; margin-bottom:18px; }
+  .exercise-icon{ flex:none; color:var(--leather-bright); display:flex; }
+  .exercise-icon svg{ display:block; }
+  .exercise-video-link{ font-size:13px; font-weight:700; color:var(--info); text-decoration:none; border-bottom:1px solid var(--info); }
   .hidden{ display:none !important; }
+
+  .tab-bar{ display:flex; gap:6px; margin-bottom:18px; }
+  .tab-btn{
+    flex:1; padding:11px 6px; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--canvas-dim); color:#6b6558; border:2px solid transparent; border-radius:2px; cursor:pointer; font-family:inherit;
+  }
+  .tab-btn.active{ background:var(--leather-bright); color:var(--canvas); border-color:var(--leather-bright); }
+  .tab-btn.locked{ opacity:0.4; pointer-events:none; }
+
+  .lib-view{ background:var(--canvas); color:var(--ink); border-radius:2px; padding:16px; }
+  .lib-view .panel{ background:var(--canvas-dim); padding:12px; border-radius:2px; }
+  .lib-view select{ margin-top:2px; }
+  .lib-group{ margin-bottom:20px; }
+  .lib-group:last-child{ margin-bottom:0; }
+  .lib-group-title{ font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--leather-bright); font-weight:800; margin-bottom:8px; }
+  .lib-item{ display:flex; gap:14px; align-items:flex-start; padding:12px 0; border-top:1px solid #d0cab8; }
+  .lib-group .lib-item:first-of-type{ border-top:none; }
+  .lib-item-icon{ flex:none; color:var(--leather-bright); }
+  .lib-item-body{ flex:1; }
+  .lib-item-name{ font-weight:800; font-size:14px; margin-bottom:3px; }
+  .lib-item-detail{ font-size:13px; color:#4a453d; line-height:1.4; margin-bottom:4px; }
+  .lib-item-noimg{ font-size:12px; color:#8a8478; font-style:italic; }
   .clockrow{ text-align:center; margin-bottom:14px; }
   .clock{ font-size:clamp(56px, 18vw, 82px); font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:0.02em; line-height:1; }
   .clock-label{ font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:#6b6558; font-weight:700; }
@@ -239,13 +265,30 @@
 
   <div class="profile-row" id="profileRow"></div>
 
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" id="tabBagBtn" data-tab="bag">Bag</button>
+    <button class="tab-btn" id="tabResistBtn" data-tab="resistance">Resistance</button>
+    <button class="tab-btn" id="tabLibraryBtn" data-tab="library">Library</button>
+  </div>
+
+  <div id="sessionView">
   <div class="section-title">Choose your routine</div>
   <div class="picker" id="picker">
-    <div class="slider-row">
+    <div class="slider-row" id="durationRow">
       <label>Duration</label>
       <div class="slider-value" id="durationValue">20 min</div>
     </div>
     <input type="range" id="durationSlider" min="10" max="30" step="2" value="20">
+    <div class="slider-row hidden" id="tempoRow">
+      <label>Seconds per rep</label>
+      <div class="slider-value" id="tempoValue">3s / rep</div>
+    </div>
+    <input type="range" id="tempoSlider" class="hidden" min="1.5" max="4" step="0.5" value="3">
+    <div class="slider-row hidden" id="restRow">
+      <label>Rest between sets</label>
+      <div class="slider-value" id="restValue">30s</div>
+    </div>
+    <input type="range" id="restSlider" class="hidden" min="15" max="60" step="5" value="30">
     <div class="variants" id="variants"></div>
     <div class="lock-note" id="lockNote">Reset the timer to change duration or style.</div>
   </div>
@@ -259,17 +302,21 @@
     </div>
     <div class="detail" id="detail">Pick a routine above, then tap start.</div>
     <div class="tip" id="tipBox"><b>Before you start:</b> Have water nearby, clear space around the bag, and check your wraps or gloves are snug.</div>
+    <div class="exercise-media hidden" id="exerciseMedia">
+      <div class="exercise-icon" id="exerciseIcon"></div>
+      <a class="exercise-video-link" id="exerciseVideoLink" href="#" target="_blank" rel="noopener">Watch form video →</a>
+    </div>
     <div class="caption" id="captionBox"><b>Coach:</b> <span id="captionText">—</span></div>
 
     <div class="clockrow">
-      <div class="clock-label">Time left, this segment</div>
+      <div class="clock-label" id="clockLabel">Time left, this segment</div>
       <div class="clock" id="clock">00:00</div>
     </div>
 
     <div class="stats">
-      <div class="stat stat-seg"><div class="label">Segment Elapsed</div><div class="value" id="segElapsed">00:00</div></div>
+      <div class="stat stat-seg" id="statSegElapsed"><div class="label">Segment Elapsed</div><div class="value" id="segElapsed">00:00</div></div>
       <div class="stat stat-elapsed"><div class="label">Workout Elapsed</div><div class="value" id="totalElapsed">00:00</div></div>
-      <div class="stat stat-remaining"><div class="label">Workout Remaining</div><div class="value" id="totalRemaining">00:00</div></div>
+      <div class="stat stat-remaining" id="statRemaining"><div class="label">Workout Remaining</div><div class="value" id="totalRemaining">00:00</div></div>
       <div class="stat stat-clock"><div class="label">Current Time</div><div class="value" id="wallClock">--:--</div></div>
     </div>
 
@@ -281,6 +328,16 @@
       <button id="pauseBtn" disabled>Pause</button>
       <button id="resetBtn">Reset</button>
     </div>
+  </div>
+  </div>
+
+  <div class="lib-view hidden" id="libraryView">
+    <div class="section-title" style="margin-top:0;">Exercise Library</div>
+    <div class="panel" style="margin-bottom:16px;">
+      <label for="libraryFilter">Filter by routine</label>
+      <select id="libraryFilter"></select>
+    </div>
+    <div id="libraryList"></div>
   </div>
 
   <div class="settings-overlay" id="settingsOverlay">
@@ -373,17 +430,6 @@ const TIPS = {
   bagFreestyle: "Mix everything you've drilled today. Keep moving, keep your guard up between combinations, and don't stand flat-footed.",
   bagMixedPower: "Blend power shots with knees, staying tight defensively between combinations.",
   bagSpeedKicks: "Combine fast hands with light kicks — prioritize balance and guard over power here.",
-  bagJabCross: "Snap the jab straight out and back, turn the rear hip into the cross. Keep your chin tucked behind your lead shoulder.",
-  bagHooks: "Pivot the back foot like you're stubbing out a cigarette, turn your whole hip and shoulder into the hook — don't just swing the arm.",
-  bagUppercuts: "Drop slightly at the knees before each uppercut and drive straight up through the target, keeping the other hand up.",
-  bagFrontKick: "Kick through the target, not at it — chamber the knee first, extend through the hip, and recover your guard fast.",
-  bagRoundhouse: "Pivot the standing foot a full 180 degrees so your hip can turn over — power comes from hip rotation, not the leg alone.",
-  bagLowKick: "Aim for the same spot every time and pivot hard on the standing foot — this is about repetition and power, not speed.",
-  bagPalmHeel: "Strike with the heel of the palm, fingers back out of the way, and drive straight through the target like you mean it.",
-  bagElbows: "Step in close before you strike — elbows are a close-range weapon, don't reach for the target.",
-  bagKnees: "Grip and pull if you can, drive the knee straight up through the target, keep your base leg bent and stable.",
-  bagHammerfist: "Strike down or across with the bottom of your fist, keeping the wrist straight and firm on impact.",
-  bagRetzev: "No pauses — chain strikes together like a real confrontation. Explosive, continuous, controlled aggression.",
   squatJump: "Land soft with bent knees and chest up, feet shoulder-width apart. Drive through your heels on the way up.",
   pushup: "Keep a straight line from head to heels — no sagging hips. Hands under shoulders, elbows at roughly forty-five degrees, full range of motion.",
   mountainClimber: "Keep your hips low and level — don't let them pike up. Drive the knees to your chest quickly while bracing your core.",
@@ -392,16 +438,16 @@ const TIPS = {
   lunge: "Front knee tracks over your ankle, not past your toes. Back knee lightly grazes the floor, chest tall.",
   highKnees: "Drive your knees to hip height quickly, stay light on your feet, and pump your arms.",
   coreTwist: "Rotate from your ribcage, not just your arms. Keep your hips relatively square and the tempo controlled.",
-  scissorKicks: "Keep your lower back pressed into the floor throughout — if it arches, raise your legs a little higher.",
-  legRaises: "Control the lowering phase, don't let momentum do the work. Stop before your lower back lifts off the floor.",
-  flutterKicks: "Keep the movement small and fast, core braced hard — this is about endurance, not range of motion.",
-  russianTwist: "Rotate from the ribcage, keep your chest up, and touch the floor lightly on each side if it's within reach.",
-  jumpingJacks: "Full extension overhead on every rep, land soft on the balls of your feet.",
-  bearCrawl: "Keep your hips low and your back flat — move opposite hand and foot together, stay controlled.",
-  sprawl: "Snap your hips back and down fast, chest up, then recover to your feet with control — this is your takedown-defence reflex.",
-  squatPunch: "Full power starts from the ground — squat with control, then explode the punch out as you stand.",
-  situp: "Exhale on the way up, control the way down — don't yank with your neck, let your core do the work.",
-  cooldown: "Hold each stretch for twenty to thirty seconds and breathe deeply — this brings your heart rate down smoothly."
+  cooldown: "Hold each stretch for twenty to thirty seconds and breathe deeply — this brings your heart rate down smoothly.",
+  dumbbellSquat: "Keep your chest up and weight through your heels — don't let your knees cave inward.",
+  dumbbellRow: "Keep your back flat, not rounded — hinge from the hips, not the lower spine.",
+  dumbbellRDL: "This is a hip hinge, not a squat — knees stay soft, the movement comes from your glutes and hamstrings.",
+  dumbbellPress: "Brace your core so you're not arching your lower back as the weights go overhead.",
+  dumbbellCurl: "Keep your elbows pinned to your sides — don't let them drift forward as it gets harder.",
+  dumbbellTricep: "Keep your elbows pointed forward and close to your head — only your forearms should move.",
+  dumbbellStepUp: "Drive through the heel of the leading foot — don't push off with the trailing leg to help you up.",
+  calfRaise: "Full range every rep — really rise onto your toes, then lower all the way down. Don't bounce.",
+  rest: "Use this to breathe, shake your arms out, and get into position for the next set."
 };
 
 /* ---------------- Mid-segment encouragement library ---------------- */
@@ -416,17 +462,6 @@ const ENCOURAGE = {
   bagFreestyle: ["However it comes, keep moving — you're doing great.", "Mix it up, stay loose, stay sharp.", "This is the fun part — let it flow."],
   bagMixedPower: ["Blend the power and the knees smoothly.", "Stay tight defensively between shots."],
   bagSpeedKicks: ["Fast hands, light feet — find the rhythm.", "Balance first, speed second."],
-  bagJabCross: ["Snap it back to guard every time.", "Turn that rear hip into the cross.", "Sharp and clean — quality over speed."],
-  bagHooks: ["Pivot that back foot, turn the hip.", "Whip it round — arm follows the body.", "Stay balanced through the turn."],
-  bagUppercuts: ["Bend the knees, drive straight up.", "Short and sharp — don't wind up.", "Keep the other hand up while you work."],
-  bagFrontKick: ["Chamber it, then fire through.", "Full hip extension — kick through the bag.", "Guard straight back up after every kick."],
-  bagRoundhouse: ["Turn that hip over, full pivot.", "Power comes from the turn, not the leg.", "Stay balanced on the standing leg."],
-  bagLowKick: ["Same target, every rep.", "Pivot hard — that's where the power lives.", "Controlled and repeatable, not rushed."],
-  bagPalmHeel: ["Fingers back, drive with the heel of the palm.", "Straight through the target — commit.", "Reset your guard immediately after."],
-  bagElbows: ["Step in tight before you strike.", "Close range — make it count.", "Sharp and controlled, not wild."],
-  bagKnees: ["Drive it straight up through the target.", "Stay stable on the base leg.", "Hips do the work here."],
-  bagHammerfist: ["Strike down with the bottom of the fist.", "Firm wrist, controlled strike.", "Committed and controlled."],
-  bagRetzev: ["Keep the flow going, no pauses.", "Chain it together — this is the real thing.", "Controlled aggression — stay sharp."],
   squatJump: ["Soft landings, chest up — you're almost there.", "Explode up, land quiet."],
   pushup: ["Keep that line straight from head to heel.", "Full range — down and all the way up."],
   mountainClimber: ["Knees driving, core tight — keep the pace.", "Stay low, stay quick."],
@@ -435,16 +470,18 @@ const ENCOURAGE = {
   lunge: ["Front knee tracking straight, chest tall.", "Control the descent, drive back up."],
   highKnees: ["Quick feet, pump those arms.", "Light and fast — knees up high."],
   coreTwist: ["Controlled rotation, not just arms.", "Keep the tempo steady through the twist."],
-  scissorKicks: ["Lower back stays down.", "Small controlled scissors, keep breathing."],
-  legRaises: ["Control the descent.", "Stop before the back arches."],
-  flutterKicks: ["Small and fast, core braced.", "Keep breathing through it."],
-  russianTwist: ["Rotate from the ribs.", "Controlled tempo, not flailing."],
-  jumpingJacks: ["Full extension, steady rhythm.", "Light on your feet."],
-  bearCrawl: ["Hips low, back flat.", "Controlled, opposite hand and foot."],
-  sprawl: ["Hips back and down, fast.", "Recover to your feet with control."],
-  squatPunch: ["Power from the ground up.", "Explode through the punch."],
-  situp: ["Control on the way down.", "Let the core do the work, not the neck."],
-  cooldown: ["Breathe deep, let the heart rate settle.", "Nice work today — enjoy the stretch."]
+  cooldown: ["Breathe deep, let the heart rate settle.", "Nice work today — enjoy the stretch."],
+  dumbbellSquat: ["Chest up, weight through your heels.", "Control the descent, drive up through your legs."],
+  dumbbellRow: ["Flat back, pull with your elbows.", "Squeeze the shoulder blades at the top."],
+  dumbbellRDL: ["Hinge, don't squat — push the hips back.", "Feel the stretch, then drive the hips forward."],
+  dumbbellPress: ["Brace the core, press straight up.", "Controlled on the way down, not just up."],
+  dumbbellCurl: ["Elbows pinned, controlled curl up.", "Squeeze at the top, don't swing it."],
+  dumbbellTricep: ["Elbows steady, just the forearm moves.", "Controlled through the full range."],
+  dumbbellStepUp: ["Drive through that front heel.", "Control the step down, don't just drop."],
+  calfRaise: ["Full stretch at the bottom, full squeeze at the top.", "Slow and controlled, no bouncing."],
+  rest: ["Breathe, shake it out.", "Get ready — next set coming up."],
+  warmupMobility: ["Nice and controlled — you're just opening things up.", "Take your time here, no need to rush it."],
+  cooldownMobility: ["Ease into the stretch, don't force it.", "This is where the recovery starts."]
 };
 function pickEncouragement(tipKey){
   const bank = ENCOURAGE[tipKey];
@@ -454,61 +491,123 @@ function pickEncouragement(tipKey){
 
 /* ---------------- Exercise type lookups ---------------- */
 const BAGTYPES = {
-  bagCombo: { name:"Bag: Combos", detail:"Jab, cross, hook combinations at an easy, technical pace." },
-  bagPower: { name:"Bag: Power Shots", detail:"Heavy, committed rear-straight and cross power punches, exhaling sharply on impact." },
-  bagPowerKnees: { name:"Bag: Power + Knees", detail:"Power punches mixed with knee strikes." },
-  bagSpeed: { name:"Bag: Speed Round", detail:"Light, fast jab-heavy punches — focus on hand speed and snap, not power." },
-  bagKick: { name:"Bag: Combos + Kicks", detail:"Punch combinations mixed with kicks." },
-  bagFootwork: { name:"Bag: Footwork Circles", detail:"Stay light, circle the bag between combos." },
-  bagFreestyle: { name:"Bag: Freestyle", detail:"Mix everything you've drilled — keep moving." },
-  bagMixedPower: { name:"Bag: Mixed Power", detail:"Power shots blended with knees." },
-  bagSpeedKicks: { name:"Bag: Speed + Kicks", detail:"Fast hands combined with light kicks." },
-  bagJabCross: { name:"Bag: Jab-Cross", detail:"Jab, cross, jab, cross — sharp and technical, snapping straight back to guard between every shot." },
-  bagHooks: { name:"Bag: Hooks", detail:"Lead and rear hooks, pivoting the back foot and rotating hip and shoulder into every shot." },
-  bagUppercuts: { name:"Bag: Uppercuts", detail:"Lead and rear uppercuts, bending the knees slightly and driving straight up through the target." },
-  bagFrontKick: { name:"Bag: Front Kicks", detail:"Push kicks (teep), driving through the ball of the foot with full hip extension, guard staying up." },
-  bagRoundhouse: { name:"Bag: Roundhouse Kicks", detail:"Roundhouse kicks — pivot the standing foot, turn the hip over, strike with the shin or instep." },
-  bagLowKick: { name:"Bag: Low Kicks", detail:"Low round kicks to leg height, pivoting hard on the standing foot for full power." },
-  bagPalmHeel: { name:"Bag: Palm-Heel Strikes", detail:"Palm-heel strikes driving straight through the target, heel of the palm leading, fingers pulled back." },
-  bagElbows: { name:"Bag: Elbow Strikes", detail:"Horizontal and rising elbow strikes at close range — step in tight and drive through the target." },
-  bagKnees: { name:"Bag: Knee Strikes", detail:"Rear and lead knee strikes, hips driving straight through, pulling the target into the knee if you can." },
-  bagHammerfist: { name:"Bag: Hammerfists", detail:"Hammerfist strikes, downward and lateral, striking with the fleshy bottom of the fist." },
-  bagRetzev: { name:"Bag: Retzev Flow", detail:"Continuous combat flow — punches, elbows, and knees chained together with no pause, like real Krav Maga rhythm." }
+  bagCombo: { name:"Bag: Combos", detail:"Jab, cross, hook combinations at an easy, technical pace.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="15" x2="32" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="48" cy="18" r="3" fill="currentColor"/><line x1="32" y1="22" x2="20" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="32" r="3" fill="currentColor"/><line x1="32" y1="38" x2="24" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="50" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="38" x2="40" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="50" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=boxing+jab+cross+hook+combination+technique' },
+  bagPower: { name:"Bag: Power Shots", detail:"Heavy, committed power punches.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="30" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="30" y1="15" x2="34" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="22" x2="52" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="54" cy="20" r="3" fill="currentColor"/><line x1="30" y1="20" x2="22" y2="28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="38" x2="24" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="50" x2="20" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="38" x2="44" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="44" y1="48" x2="46" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=boxing+power+punches+heavy+bag+technique' },
+  bagPowerKnees: { name:"Bag: Power + Knees", detail:"Power punches mixed with knee strikes.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="30" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="30" y1="15" x2="32" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="48" cy="16" r="3" fill="currentColor"/><line x1="30" y1="20" x2="22" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="24" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="46" x2="22" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="42" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="38" x2="40" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=muay+thai+power+knee+strikes+combo' },
+  bagSpeed: { name:"Bag: Speed Round", detail:"Light, fast punches — focus on hand speed.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="15" x2="32" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="20" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3" stroke-linecap="round"/><circle cx="48" cy="20" r="3" fill="currentColor"/><line x1="32" y1="20" x2="18" y2="20" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3" stroke-linecap="round"/><circle cx="16" cy="20" r="3" fill="currentColor"/><line x1="32" y1="38" x2="24" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="50" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="38" x2="40" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="50" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=boxing+speed+punches+hand+speed+drills' },
+  bagKick: { name:"Bag: Combos + Kicks", detail:"Punch combinations mixed with kicks.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="22" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="22" y1="15" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="20" x2="36" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="34" x2="18" y2="44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="18" y1="44" x2="18" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="34" x2="42" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="34" x2="54" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=muay+thai+kickboxing+combo+kicks+technique' },
+  bagFootwork: { name:"Bag: Footwork Circles", detail:"Stay light, circle the bag between combos.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="15" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="22" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="42" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="26" y2="52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="38" y2="52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M14 44 Q32 62 50 44" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3,3"/></svg>',
+    video:'https://www.youtube.com/results?search_query=boxing+footwork+drills+circling+opponent' },
+  bagFreestyle: { name:"Bag: Freestyle", detail:"Mix everything you've drilled — keep moving.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="15" x2="32" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="20" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="44" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="38" x2="24" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="50" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="38" x2="40" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="50" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=boxing+freestyle+heavy+bag+combinations' },
+  bagMixedPower: { name:"Bag: Mixed Power", detail:"Power shots blended with knees.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="30" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="30" y1="15" x2="32" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="48" cy="16" r="3" fill="currentColor"/><line x1="30" y1="20" x2="22" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="24" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="46" x2="22" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="36" x2="42" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="38" x2="40" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=muay+thai+power+punches+knees+combo' },
+  bagSpeedKicks: { name:"Bag: Speed + Kicks", detail:"Fast hands combined with light kicks.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="22" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="22" y1="15" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="20" x2="36" y2="18" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3" stroke-linecap="round"/><line x1="24" y1="34" x2="18" y2="44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="18" y1="44" x2="18" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="34" x2="42" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="42" y1="34" x2="54" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=kickboxing+fast+hands+light+kicks+combo' }
 };
 const STRENGTHTYPES = {
-  squatJump: { name:"Squat Jumps", detail:"Explosive squat jumps." },
-  pushup: { name:"Push-Ups", detail:"Standard push-ups, steady pace." },
-  mountainClimber: { name:"Mountain Climbers", detail:"Fast-paced mountain climbers." },
-  plank: { name:"Plank", detail:"Hold a strong plank." },
-  burpee: { name:"Burpees", detail:"Full burpees, steady pace." },
-  lunge: { name:"Lunges", detail:"Alternating forward lunges." },
-  highKnees: { name:"High Knees", detail:"Fast, light high knees on the spot." },
-  coreTwist: { name:"Core Twists", detail:"Seated or standing rotational core twists." },
-  scissorKicks: { name:"Scissor Kicks", detail:"Lying on your back, legs straight and slightly raised, scissor them up and down without touching the floor." },
-  legRaises: { name:"Leg Raises", detail:"Lying on your back, raise straight legs to vertical and lower with control, keeping your lower back pressed to the floor." },
-  flutterKicks: { name:"Flutter Kicks", detail:"Lying on your back, small fast alternating kicks with legs a few inches off the floor, core braced." },
-  russianTwist: { name:"Russian Twists", detail:"Seated, lean back slightly and rotate side to side, feet lifted off the floor if you can manage it." },
-  jumpingJacks: { name:"Jumping Jacks", detail:"Full range of motion, arms overhead, steady rhythm." },
-  bearCrawl: { name:"Bear Crawl", detail:"Hands and feet on the floor, knees hovering just above it — crawl forward and back with control." },
-  sprawl: { name:"Sprawls", detail:"Explosively kick your legs back and drop your hips as if sprawling away from a takedown, then recover to standing." },
-  squatPunch: { name:"Squat to Punch", detail:"Squat down, then explode upward into a strong punch — drive the power up through your whole body." },
-  situp: { name:"Sit-Ups", detail:"Full sit-ups at a controlled tempo, hands lightly by your ears, no yanking the neck." }
+  squatJump: { name:"Squat Jumps", detail:"Explosive squat jumps.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="6" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="11" x2="32" y2="28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="15" x2="24" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="15" x2="40" y2="8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="28" x2="26" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="40" x2="26" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="28" x2="38" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="40" x2="38" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M14 56 L50 56" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3"/></svg>',
+    video:'https://www.youtube.com/results?search_query=squat+jump+proper+form' },
+  pushup: { name:"Push-Ups", detail:"Standard push-ups, steady pace.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="10" cy="28" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="15" y1="28" x2="50" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="29" x2="20" y2="44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="30" x2="38" y2="44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="30" x2="58" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=push+up+proper+form' },
+  mountainClimber: { name:"Mountain Climbers", detail:"Fast-paced mountain climbers.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="10" cy="26" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="15" y1="27" x2="52" y2="32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="28" x2="20" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="52" y1="32" x2="58" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="30" x2="24" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=mountain+climber+exercise+proper+form' },
+  plank: { name:"Plank", detail:"Hold a strong plank.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="10" cy="26" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="15" y1="27" x2="52" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="27" x2="20" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="52" y1="34" x2="58" y2="38" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=plank+proper+form' },
+  burpee: { name:"Burpees", detail:"Full burpees, steady pace.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="16" cy="24" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="20" y1="26" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="27" x2="24" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="52" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="48" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=burpee+proper+form+tutorial' },
+  lunge: { name:"Lunges", detail:"Alternating forward lunges.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="26" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="26" y1="14" x2="30" y2="32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="32" x2="20" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="20" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="32" x2="44" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="44" y1="42" x2="52" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=alternating+forward+lunge+proper+form' },
+  highKnees: { name:"High Knees", detail:"Fast, light high knees on the spot.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="22" y2="12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="42" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="34" x2="26" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="24" x2="30" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="34" x2="38" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="48" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=high+knees+exercise+proper+form' },
+  coreTwist: { name:"Core Twists", detail:"Seated or standing rotational core twists.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="18" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M40 16 Q46 20 44 26" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3"/></svg>',
+    video:'https://www.youtube.com/results?search_query=seated+standing+core+twist+exercise' },
+  dumbbellSquat: { name:"Goblet Squat", detail:"Hold one dumbbell vertically at your chest. Feet shoulder-width, squat down keeping your chest up, drive through your heels to stand.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="27" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="37" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="28" r="3" fill="currentColor"/><line x1="32" y1="33" x2="23" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="23" y1="45" x2="21" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="33" x2="41" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="41" y1="45" x2="43" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=goblet+squat+form' },
+  dumbbellRow: { name:"Bent-Over Row", detail:"Hinge at the hips with a flat back, dumbbells hanging. Pull your elbows back past your ribs, squeeze your shoulder blades, lower under control.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="16" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="19" y1="20" x2="38" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="25" y1="24" x2="25" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="42" r="3" fill="currentColor"/><line x1="38" y1="34" x2="34" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="50" x2="34" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="34" x2="46" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="50" x2="46" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+bent+over+row+form' },
+  dumbbellRDL: { name:"Romanian Deadlift", detail:"Soft knees, hinge at the hips pushing them back, dumbbells close to your legs. Feel the hamstring stretch, then drive your hips forward to stand.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="18" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="21" y1="18" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="22" x2="26" y2="52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="54" r="3" fill="currentColor"/><line x1="40" y1="30" x2="36" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="48" x2="36" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="48" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="48" y1="48" x2="48" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+romanian+deadlift+form' },
+  dumbbellPress: { name:"Standing Shoulder Press", detail:"Dumbbells at shoulder height, palms forward. Press straight overhead without arching your back, lower under control.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="20" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="4" r="3" fill="currentColor"/><line x1="32" y1="18" x2="44" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="46" cy="4" r="3" fill="currentColor"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=standing+dumbbell+shoulder+press+form' },
+  dumbbellCurl: { name:"Bicep Curl", detail:"Elbows pinned to your sides, curl the dumbbells up toward your shoulders, squeeze, then lower under control — don't swing your body to help it up.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="34" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="18" r="3" fill="currentColor"/><line x1="32" y1="20" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+bicep+curl+form' },
+  dumbbellTricep: { name:"Overhead Tricep Extension", detail:"Hold one dumbbell with both hands overhead, lower it behind your head by bending only at the elbows, then extend back up.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="28" y1="16" x2="30" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="4" x2="24" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="16" r="3" fill="currentColor"/><line x1="36" y1="16" x2="38" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+overhead+tricep+extension+form' },
+  dumbbellStepUp: { name:"Step-Up", detail:"Step up onto a sturdy chair or low step holding a dumbbell in each hand. Drive through the front heel, step down with control, and switch leading leg each set.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="26" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="26" y1="14" x2="26" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="34" x2="18" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="18" y1="46" x2="18" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="34" x2="36" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="30" x2="40" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="10" y1="56" x2="54" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="30" x2="54" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+step+up+form' },
+  calfRaise: { name:"Calf Raise", detail:"Standing tall, holding a dumbbell in each hand, rise up onto your toes, pause briefly at the top, then lower all the way down under control.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="40" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="26" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="38" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="54" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="54" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=standing+dumbbell+calf+raise+form' }
 };
 
 /* ---------------- Style presets ---------------- */
 const STYLES = [
-  { id:'classic', label:"Boxer's Classic", desc:"Jabs, hooks, uppercuts — balanced technique and power", mode:'adult',
-    bagCycle:['bagJabCross','bagHooks','bagUppercuts','bagSpeed','bagFreestyle'],
-    strCycle:['squatJump','pushup','mountainClimber','plank','scissorKicks'] },
+  { id:'classic', label:"Boxer's Classic", desc:"Balanced technique and power", mode:'adult',
+    bagCycle:['bagCombo','bagPowerKnees','bagSpeed','bagKick','bagFreestyle'],
+    strCycle:['squatJump','pushup','mountainClimber','plank','burpee'] },
   { id:'power', label:"Power & Core", desc:"Power shots with extra core work", mode:'adult',
-    bagCycle:['bagPower','bagHooks','bagUppercuts','bagMixedPower','bagFreestyle'],
-    strCycle:['plank','coreTwist','russianTwist','legRaises','situp'] },
-  { id:'kick', label:"Kickboxer Mix", desc:"Front kicks, roundhouses, low kicks and footwork", mode:'adult',
-    bagCycle:['bagFrontKick','bagRoundhouse','bagLowKick','bagSpeedKicks','bagFreestyle'],
-    strCycle:['highKnees','lunge','flutterKicks','coreTwist','jumpingJacks'] },
-  { id:'krav', label:"Krav Maga Flow", desc:"Palm-heels, elbows, knees and retzev combat flow", mode:'adult',
-    bagCycle:['bagPalmHeel','bagElbows','bagKnees','bagHammerfist','bagFrontKick','bagRetzev'],
-    strCycle:['sprawl','squatPunch','legRaises','bearCrawl','russianTwist','burpee'] },
+    bagCycle:['bagCombo','bagPowerKnees','bagPower','bagMixedPower','bagFreestyle'],
+    strCycle:['plank','coreTwist','burpee','plank','coreTwist'] },
+  { id:'kick', label:"Kickboxer Mix", desc:"Kicks and footwork throughout", mode:'adult',
+    bagCycle:['bagKick','bagFootwork','bagSpeedKicks','bagFreestyle','bagKick'],
+    strCycle:['highKnees','lunge','mountainClimber','coreTwist','highKnees'] },
+  { id:'dumbbell-full', label:"Dumbbell — Full Body", desc:"No bag — squat, push, row, hinge, press, plank", mode:'adult',
+    resistance:{ restBetweenSets:45, exercises:[
+      {key:'dumbbellSquat', sets:3, reps:10},
+      {key:'pushup', sets:3, reps:10},
+      {key:'dumbbellRow', sets:3, reps:10},
+      {key:'dumbbellRDL', sets:3, reps:10},
+      {key:'dumbbellPress', sets:3, reps:10},
+      {key:'plank', sets:3, holdSecs:40}
+    ]} },
+  { id:'dumbbell-upper', label:"Dumbbell — Upper Focus", desc:"No bag — push, pull, press, arms, core", mode:'adult',
+    resistance:{ restBetweenSets:45, exercises:[
+      {key:'pushup', sets:3, reps:12},
+      {key:'dumbbellRow', sets:3, reps:12},
+      {key:'dumbbellPress', sets:3, reps:10},
+      {key:'dumbbellCurl', sets:3, reps:12},
+      {key:'dumbbellTricep', sets:3, reps:12},
+      {key:'plank', sets:2, holdSecs:40}
+    ]} },
+  { id:'dumbbell-lower', label:"Dumbbell — Lower Focus", desc:"No bag — squat, hinge, lunge, step-up, calves, core", mode:'adult',
+    resistance:{ restBetweenSets:30, exercises:[
+      {key:'dumbbellSquat', sets:4, reps:12},
+      {key:'dumbbellRDL', sets:3, reps:10},
+      {key:'lunge', sets:3, reps:12},
+      {key:'dumbbellStepUp', sets:3, reps:10},
+      {key:'calfRaise', sets:3, reps:15},
+      {key:'plank', sets:3, holdSecs:45}
+    ]} },
 
   { id:'junior-combos', label:"Junior Combos", desc:"Technique and footwork, medium pace", mode:'kid',
     bagCycle:['bagCombo','bagFootwork','bagSpeed','bagKick','bagCombo'],
@@ -531,30 +630,32 @@ function buildRoutine(durationMin, style){
   const totalSec = durationMin * 60;
   const remaining = totalSec - warmup - cooldown;
 
-  let numPairs = isKid
-    ? Math.max(3, Math.round((durationMin - 3) / 3))
-    : Math.max(3, Math.round((durationMin - 2) / 4));
-  while(numPairs > 1 && numPairs * strengthLen >= remaining) numPairs--;
-
-  const strengthTotal = numPairs * strengthLen;
-  const bagTotal = remaining - strengthTotal;
-  const base = Math.floor(bagTotal / numPairs);
-  const remainder = bagTotal - base * numPairs;
-
   const segments = [];
   segments.push({ kind:"Warm-up", secs:warmup, name:"Warm Up",
     detail:"Arm circles, torso twists, shadow boxing, bodyweight squats.", tip:TIPS.warmup, tipKey:"warmup" });
 
-  for(let i=0; i<numPairs; i++){
-    const bagKey = style.bagCycle[i % style.bagCycle.length];
-    const strKey = style.strCycle[i % style.strCycle.length];
-    const bagSecs = base + (i === numPairs-1 ? remainder : 0);
-    const bagInfo = BAGTYPES[bagKey];
-    segments.push({ kind:"Heavy Bag — Round " + (i+1), secs:bagSecs, name:bagInfo.name,
-      detail:bagInfo.detail, tip:TIPS[bagKey], tipKey:bagKey });
-    const strInfo = STRENGTHTYPES[strKey];
-    segments.push({ kind:"Strength", secs:strengthLen, name:strInfo.name,
-      detail:strInfo.detail, tip:TIPS[strKey], tipKey:strKey });
+  {
+    let numPairs = isKid
+      ? Math.max(3, Math.round((durationMin - 3) / 3))
+      : Math.max(3, Math.round((durationMin - 2) / 4));
+    while(numPairs > 1 && numPairs * strengthLen >= remaining) numPairs--;
+
+    const strengthTotal = numPairs * strengthLen;
+    const bagTotal = remaining - strengthTotal;
+    const base = Math.floor(bagTotal / numPairs);
+    const remainder = bagTotal - base * numPairs;
+
+    for(let i=0; i<numPairs; i++){
+      const bagKey = style.bagCycle[i % style.bagCycle.length];
+      const strKey = style.strCycle[i % style.strCycle.length];
+      const bagSecs = base + (i === numPairs-1 ? remainder : 0);
+      const bagInfo = BAGTYPES[bagKey];
+      segments.push({ kind:"Heavy Bag — Round " + (i+1), secs:bagSecs, name:bagInfo.name,
+        detail:bagInfo.detail, tip:TIPS[bagKey], tipKey:bagKey });
+      const strInfo = STRENGTHTYPES[strKey];
+      segments.push({ kind:"Strength", secs:strengthLen, name:strInfo.name,
+        detail:strInfo.detail, tip:TIPS[strKey], tipKey:strKey });
+    }
   }
 
   segments.push({ kind:"Cool-down", secs:cooldown, name:"Cool Down",
@@ -563,9 +664,122 @@ function buildRoutine(durationMin, style){
   return segments;
 }
 
+/* Builds a reps/sets/rest routine from a style's `resistance` config.
+   Reps-based exercises count reps at `tempo` seconds each rather than
+   counting down a clock; hold exercises (plank) still count down time.
+   An explicit Rest segment is inserted between every set, including
+   between different exercises, so breaks are never silent/implicit. */
+/* Mobility-specific warm-up/cool-down for resistance sessions — distinct
+   named drills rather than one generic blob, so each gets its own voice
+   cue and technique tip. Applies to all three dumbbell variants: covers
+   shoulders, hips, and spine, which every variant loads in some form. */
+const RESISTANCE_WARMUP = [
+  { name:"Arm Circles & Shoulder Rolls", secs:60,
+    detail:"Big circles forward then back, then roll the shoulders — wake up the upper body before loading it.",
+    tip:"Keep the circles big and controlled, not rushed.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="48" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3,3"/><line x1="32" y1="42" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=arm+circles+shoulder+rolls+warm+up' },
+  { name:"Hip Circles & Leg Swings", secs:60,
+    detail:"Circle the hips both directions, then swing each leg forward-back and side-to-side — opens the hips before squats and hinges.",
+    tip:"Hold onto something for balance if you need to — controlled range, not momentum.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="30" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="30" y1="14" x2="30" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="36" x2="24" y2="52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="52" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M30 36 Q46 40 44 56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="4,3"/></svg>',
+    video:'https://www.youtube.com/results?search_query=hip+circles+leg+swings+warm+up' },
+  { name:"Bodyweight Squats", secs:60,
+    detail:"Slow, controlled squats with no load — groove the pattern before adding the dumbbells.",
+    tip:"Full depth, chest up — this is rehearsing the movement, not fatiguing you.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="24" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="40" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="33" x2="23" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="23" y1="45" x2="21" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="33" x2="41" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="41" y1="45" x2="43" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=bodyweight+squat+warm+up+technique' },
+  { name:"Walking Lunges with Torso Twist", secs:60,
+    detail:"Step into a lunge, rotate your torso toward the front leg, alternate sides — mobilises hips and spine together.",
+    tip:"Rotate from the ribcage, keep the front knee stable over your foot.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="26" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="26" y1="14" x2="30" y2="32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="20" x2="44" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="32" x2="20" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="40" x2="20" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="32" x2="44" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="44" y1="42" x2="52" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=walking+lunge+with+torso+twist+warm+up' },
+  { name:"Cat-Cow Spinal Mobility", secs:60,
+    detail:"On hands and knees, alternate arching and rounding your back slowly — mobilises the whole spine before hinge work.",
+    tip:"Move slowly, one section of the spine at a time.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="14" cy="30" r="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M19 32 Q34 20 50 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="19" y1="32" x2="19" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="32" x2="50" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="27" x2="30" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="26" x2="40" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=cat+cow+stretch+spinal+mobility' }
+];
+const RESISTANCE_COOLDOWN = [
+  { name:"Quad Stretch", secs:60,
+    detail:"Standing or lying, pull one heel toward your glute, hold, then switch sides.",
+    tip:"Keep your knees together, hips pushed slightly forward.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="26" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="26" y1="14" x2="28" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="28" y1="40" x2="22" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="54" x2="22" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="28" y1="40" x2="38" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="30" x2="40" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="20" x2="36" y2="28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=standing+quad+stretch+proper+form' },
+  { name:"Hamstring & Hip Flexor Stretch", secs:60,
+    detail:"Half-kneeling lunge stretch for the hip flexor, then a forward hinge for the hamstring — hold each side.",
+    tip:"Ease into it — no bouncing, just a steady hold.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="20" cy="20" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="22" y1="25" x2="34" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="42" x2="26" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="50" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="42" x2="46" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="48" x2="46" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="22" y1="28" x2="10" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=hip+flexor+hamstring+stretch+half+kneeling' },
+  { name:"Shoulder & Chest Stretch", secs:60,
+    detail:"Pull one arm across your chest, then clasp your hands behind your back to open the chest.",
+    tip:"Breathe normally through the stretch, don't hold your breath.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="46" y2="22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="22" x2="24" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=shoulder+chest+stretch+cool+down' },
+  { name:"Child's Pose", secs:60,
+    detail:"Sit back onto your heels, arms extended forward, let your lower back release.",
+    tip:"Let your weight sink back, relax the shoulders down.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="50" cy="40" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="46" y1="42" x2="14" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="45" x2="50" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="14" y1="30" x2="14" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=childs+pose+stretch+lower+back' },
+  { name:"Deep Breathing", secs:60,
+    detail:"Slow breaths in through the nose, out through the mouth — bring your heart rate down before you stop.",
+    tip:"A longer exhale than inhale helps your heart rate settle faster.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="19" x2="32" y2="44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="24" x2="22" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="24" x2="42" y2="36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M18 24 Q32 14 46 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3,3"/><path d="M15 30 Q32 18 49 30" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3,3"/></svg>',
+    video:'https://www.youtube.com/results?search_query=deep+breathing+exercise+cool+down' }
+];
+
+/* Builds a reps/sets/rest routine from a style's `resistance` config.
+   Reps-based exercises count reps at `tempo` seconds each rather than
+   counting down a clock; hold exercises (plank) still count down time.
+   An explicit Rest segment is inserted between every set, including
+   between different exercises, so breaks are never silent/implicit. */
+function buildResistanceRoutine(style, tempo, restSecs){
+  const exercises = style.resistance.exercises;
+  const segments = [];
+  RESISTANCE_WARMUP.forEach(w=>{
+    segments.push({ kind:"Warm-up — " + w.name, secs:w.secs, name:w.name, type:'time',
+      detail:w.detail, tip:w.tip, tipKey:'warmupMobility' });
+  });
+
+  exercises.forEach((ex, exIdx)=>{
+    const info = STRENGTHTYPES[ex.key];
+    for(let set=1; set<=ex.sets; set++){
+      if(ex.reps){
+        const secs = Math.round(ex.reps * tempo);
+        segments.push({
+          kind: info.name + " — Set " + set + "/" + ex.sets, name: info.name,
+          detail: info.detail, tip: TIPS[ex.key], tipKey: ex.key,
+          type:'reps', reps: ex.reps, tempo: tempo, secs: secs
+        });
+      } else {
+        segments.push({
+          kind: info.name + " — Set " + set + "/" + ex.sets, name: info.name,
+          detail: info.detail, tip: TIPS[ex.key], tipKey: ex.key,
+          type:'hold', secs: ex.holdSecs
+        });
+      }
+      const isLastSetOfLastExercise = (set === ex.sets) && (exIdx === exercises.length - 1);
+      if(!isLastSetOfLastExercise){
+        segments.push({ kind:"Rest", name:"Rest",
+          detail:"Shake out your arms, breathe, get into position for the next set.",
+          tip:TIPS.rest, tipKey:'rest', type:'rest', secs: restSecs });
+      }
+    }
+  });
+
+  RESISTANCE_COOLDOWN.forEach(c=>{
+    segments.push({ kind:"Cool-down — " + c.name, secs:c.secs, name:c.name, type:'time',
+      detail:c.detail, tip:c.tip, tipKey:'cooldownMobility' });
+  });
+
+  return segments;
+}
+
 function buildSay(seg){
   if(seg.kind === "Warm-up") return "Let's begin. Warm up time. " + seg.detail;
   if(seg.kind === "Cool-down") return "Great work. Cool down now. " + seg.detail;
+  if(seg.type === 'rest') return "Rest. " + seg.secs + " seconds before your next set.";
+  if(seg.type === 'reps') return seg.name + ". " + seg.reps + " reps this set. " + seg.detail;
   if(seg.kind.indexOf("Heavy Bag") === 0){
     const roundLabel = seg.kind.replace("Heavy Bag — ", "");
     return roundLabel + ". On the bag. " + seg.detail;
@@ -576,7 +790,13 @@ function buildSay(seg){
 /* ---------------- State ---------------- */
 let selectedStyle = STYLES[0];
 let activeDuration = 20;
-let currentRoutine = { id:selectedStyle.id+'-'+activeDuration, label:selectedStyle.label, desc:selectedStyle.desc, duration:activeDuration, segments:buildRoutine(activeDuration, selectedStyle) };
+let repTempo = 3;
+let restSecs = 30;
+let activeTab = 'bag';
+function buildForStyle(style){
+  return style.resistance ? buildResistanceRoutine(style, repTempo, restSecs) : buildRoutine(activeDuration, style);
+}
+let currentRoutine = { id:selectedStyle.id+'-'+activeDuration, label:selectedStyle.label, desc:selectedStyle.desc, duration:activeDuration, segments:buildForStyle(selectedStyle) };
 let idx = -1;
 let remaining = 0;
 let timerId = null;
@@ -615,19 +835,59 @@ settingsOverlay.addEventListener('click', (e)=>{
 });
 const pickerEl = document.getElementById('picker');
 const variantsEl = document.getElementById('variants');
+const durationRowEl = document.getElementById('durationRow');
 const durationSlider = document.getElementById('durationSlider');
 const durationValueEl = document.getElementById('durationValue');
+const tempoRowEl = document.getElementById('tempoRow');
+const tempoSlider = document.getElementById('tempoSlider');
+const tempoValueEl = document.getElementById('tempoValue');
+const restRowEl = document.getElementById('restRow');
+const restSlider = document.getElementById('restSlider');
+const restValueEl = document.getElementById('restValue');
+const tabBarEl = document.getElementById('tabBar');
+const sessionViewEl = document.getElementById('sessionView');
+const libraryViewEl = document.getElementById('libraryView');
+const libraryFilterEl = document.getElementById('libraryFilter');
+const libraryListEl = document.getElementById('libraryList');
+const statSegElapsedEl = document.getElementById('statSegElapsed');
+const statRemainingEl = document.getElementById('statRemaining');
 const captionTextEl = document.getElementById('captionText');
+const exerciseMediaEl = document.getElementById('exerciseMedia');
+const exerciseIconEl = document.getElementById('exerciseIcon');
+const exerciseVideoLinkEl = document.getElementById('exerciseVideoLink');
+
+function updateExerciseMedia(tipKey){
+  const info = STRENGTHTYPES[tipKey];
+  if(info && info.img){
+    exerciseIconEl.innerHTML = info.img;
+    exerciseVideoLinkEl.href = info.video || '#';
+    exerciseMediaEl.classList.remove('hidden');
+  } else {
+    exerciseMediaEl.classList.add('hidden');
+  }
+}
 
 /* ---------------- Picker ---------------- */
 function rebuildCurrentRoutine(){
   currentRoutine = {
-    id: selectedStyle.id + '-' + activeDuration,
+    id: selectedStyle.id + (selectedStyle.resistance ? '-tempo' + repTempo : '-' + activeDuration),
     label: selectedStyle.label,
     desc: selectedStyle.desc,
-    duration: activeDuration,
-    segments: buildRoutine(activeDuration, selectedStyle)
+    duration: selectedStyle.resistance ? null : activeDuration,
+    segments: buildForStyle(selectedStyle)
   };
+}
+
+function updatePickerForStyle(style){
+  const isResistance = !!style.resistance;
+  durationRowEl.classList.toggle('hidden', isResistance);
+  durationSlider.classList.toggle('hidden', isResistance);
+  tempoRowEl.classList.toggle('hidden', !isResistance);
+  tempoSlider.classList.toggle('hidden', !isResistance);
+  restRowEl.classList.toggle('hidden', !isResistance);
+  restSlider.classList.toggle('hidden', !isResistance);
+  statSegElapsedEl.classList.toggle('hidden', isResistance);
+  statRemainingEl.classList.toggle('hidden', isResistance);
 }
 
 durationSlider.addEventListener('input', ()=>{
@@ -638,16 +898,196 @@ durationSlider.addEventListener('input', ()=>{
   applyIdleDisplay();
 });
 
+tempoSlider.addEventListener('input', ()=>{
+  repTempo = parseFloat(tempoSlider.value);
+  tempoValueEl.textContent = repTempo + 's / rep';
+  if(running) return;
+  rebuildCurrentRoutine();
+  applyIdleDisplay();
+});
+
+restSlider.addEventListener('input', ()=>{
+  restSecs = parseInt(restSlider.value, 10);
+  restValueEl.textContent = restSecs + 's';
+  if(running) return;
+  rebuildCurrentRoutine();
+  applyIdleDisplay();
+});
+
+/* ---------------- Tabs ---------------- */
+function styleMatchesTab(style, tab){
+  if(tab === 'bag') return !style.resistance;
+  if(tab === 'resistance') return !!style.resistance;
+  return true;
+}
+
+function switchTab(tab){
+  if(running) return;
+  activeTab = tab;
+  Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  if(tab === 'library'){
+    sessionViewEl.classList.add('hidden');
+    libraryViewEl.classList.remove('hidden');
+    renderLibrary();
+    return;
+  }
+  sessionViewEl.classList.remove('hidden');
+  libraryViewEl.classList.add('hidden');
+  if(!styleMatchesTab(selectedStyle, tab)){
+    const type = activeProfile().type;
+    const firstMatch = STYLES.find(r => r.mode===type && styleMatchesTab(r, tab));
+    if(firstMatch) selectedStyle = firstMatch;
+  }
+  updatePickerForStyle(selectedStyle);
+  renderVariants();
+  rebuildCurrentRoutine();
+  applyIdleDisplay();
+}
+
+Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(btn=>{
+  btn.addEventListener('click', ()=> switchTab(btn.dataset.tab));
+});
+
+function lockTabs(lock){
+  Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=> b.classList.toggle('locked', lock));
+}
+
+/* ---------------- Library ---------------- */
+function renderLibrary(){
+  const type = activeProfile().type;
+  const relevantStyles = STYLES.filter(r=>r.mode===type);
+  libraryFilterEl.innerHTML = '';
+  relevantStyles.forEach(r=>{
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = r.label;
+    libraryFilterEl.appendChild(opt);
+  });
+  const warmOpt = document.createElement('option');
+  warmOpt.value = 'warmup-lib';
+  warmOpt.textContent = 'Warm-up (mobility)';
+  libraryFilterEl.appendChild(warmOpt);
+  const coolOpt = document.createElement('option');
+  coolOpt.value = 'cooldown-lib';
+  coolOpt.textContent = 'Cool-down (mobility)';
+  libraryFilterEl.appendChild(coolOpt);
+
+  const preferred = relevantStyles.find(r=>r.id===selectedStyle.id) ? selectedStyle.id : (relevantStyles[0] ? relevantStyles[0].id : null);
+  if(preferred) libraryFilterEl.value = preferred;
+  renderLibraryFor(libraryFilterEl.value);
+}
+
+libraryFilterEl.addEventListener('change', ()=> renderLibraryFor(libraryFilterEl.value));
+
+function libItemHtml(info){
+  if(info && info.img){
+    return '<div class="lib-item"><div class="lib-item-icon">'+info.img+'</div>'
+      + '<div class="lib-item-body"><div class="lib-item-name">'+info.name+'</div>'
+      + '<div class="lib-item-detail">'+info.detail+'</div>'
+      + (info.video ? '<a class="exercise-video-link" href="'+info.video+'" target="_blank" rel="noopener">Watch form video →</a>' : '')
+      + '</div></div>';
+  }
+  return '<div class="lib-item"><div class="lib-item-body"><div class="lib-item-name">'+info.name+'</div>'
+    + '<div class="lib-item-detail">'+info.detail+'</div>'
+    + '<div class="lib-item-noimg">No diagram for this one yet — see the description above.</div></div></div>';
+}
+
+function renderMobilityGroup(title, items){
+  libraryListEl.innerHTML = '';
+  const group = document.createElement('div');
+  group.className = 'lib-group';
+  const titleEl = document.createElement('div');
+  titleEl.className = 'lib-group-title';
+  titleEl.textContent = title;
+  group.appendChild(titleEl);
+  items.forEach(item=>{
+    const wrap = document.createElement('div');
+    wrap.innerHTML = libItemHtml(item) + '<div class="lib-item-detail" style="padding-left:2px;">' + item.secs + 's</div>';
+    group.appendChild(wrap);
+  });
+  libraryListEl.appendChild(group);
+}
+
+function renderLibraryFor(value){
+  if(value === 'warmup-lib'){
+    renderMobilityGroup('Warm-up (same for every resistance session)', RESISTANCE_WARMUP);
+    return;
+  }
+  if(value === 'cooldown-lib'){
+    renderMobilityGroup('Cool-down (same for every resistance session)', RESISTANCE_COOLDOWN);
+    return;
+  }
+  const type = activeProfile().type;
+  const style = STYLES.find(r=>r.id===value && r.mode===type);
+  renderLibraryList(style);
+}
+
+function renderLibraryList(style){
+  libraryListEl.innerHTML = '';
+  if(!style) return;
+  if(style.resistance){
+    const group = document.createElement('div');
+    group.className = 'lib-group';
+    const title = document.createElement('div');
+    title.className = 'lib-group-title';
+    title.textContent = style.label + ' — exercises in order';
+    group.appendChild(title);
+    style.resistance.exercises.forEach(ex=>{
+      const info = STRENGTHTYPES[ex.key];
+      const wrap = document.createElement('div');
+      wrap.innerHTML = libItemHtml(info) + '<div class="lib-item-detail" style="padding-left:2px;">'
+        + ex.sets + ' sets × ' + (ex.reps ? ex.reps + ' reps' : ex.holdSecs + 's hold') + '</div>';
+      group.appendChild(wrap);
+    });
+    libraryListEl.appendChild(group);
+  } else {
+    const bagGroup = document.createElement('div');
+    bagGroup.className = 'lib-group';
+    const bagTitle = document.createElement('div');
+    bagTitle.className = 'lib-group-title';
+    bagTitle.textContent = style.label + ' — bag rounds';
+    bagGroup.appendChild(bagTitle);
+    const seenBag = [];
+    style.bagCycle.forEach(key=>{
+      if(seenBag.includes(key)) return;
+      seenBag.push(key);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = libItemHtml(BAGTYPES[key]);
+      bagGroup.appendChild(wrap);
+    });
+    libraryListEl.appendChild(bagGroup);
+
+    const strGroup = document.createElement('div');
+    strGroup.className = 'lib-group';
+    const strTitle = document.createElement('div');
+    strTitle.className = 'lib-group-title';
+    strTitle.textContent = style.label + ' — strength blocks';
+    strGroup.appendChild(strTitle);
+    const seenStr = [];
+    style.strCycle.forEach(key=>{
+      if(seenStr.includes(key)) return;
+      seenStr.push(key);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = libItemHtml(STRENGTHTYPES[key]);
+      strGroup.appendChild(wrap);
+    });
+    libraryListEl.appendChild(strGroup);
+  }
+}
+
 function renderVariants(){
   variantsEl.innerHTML = '';
   const type = activeProfile().type;
-  STYLES.filter(r=>r.mode===type).forEach(r=>{
+  STYLES.filter(r=>r.mode===type && styleMatchesTab(r, activeTab)).forEach(r=>{
     const card = document.createElement('div');
     card.className = 'variant' + (selectedStyle.id===r.id ? ' selected' : '');
     card.innerHTML = '<div><div class="vname">'+r.label+'</div><div class="vdesc">'+r.desc+'</div></div>';
     card.addEventListener('click', ()=>{
       if(running) return;
       selectedStyle = r;
+      updatePickerForStyle(selectedStyle);
       renderVariants();
       rebuildCurrentRoutine();
       applyIdleDisplay();
@@ -659,6 +1099,7 @@ function renderVariants(){
 function lockPicker(lock){
   pickerEl.classList.toggle('locked', lock);
   profileRowEl.classList.toggle('locked', lock);
+  lockTabs(lock);
 }
 
 /* ---------------- Timer helpers ---------------- */
@@ -838,18 +1279,40 @@ function updateStats(){
 
 let midpointMark = -1;
 let midpointSaid = false;
+let lastRepIndex = 0;
+const clockLabelEl = document.getElementById('clockLabel');
+
+function repIndexFor(s, remainingSecs){
+  const elapsed = s.secs - Math.max(remainingSecs,0);
+  return Math.min(s.reps, Math.floor(elapsed / s.tempo) + 1);
+}
+function renderClock(s, remainingSecs){
+  if(s.type === 'reps'){
+    clockEl.textContent = 'Rep ' + repIndexFor(s, remainingSecs) + ' / ' + s.reps;
+  } else {
+    clockEl.textContent = fmt(Math.max(remainingSecs,0));
+  }
+}
+function clockLabelFor(s){
+  if(s.type === 'reps') return 'Reps this set';
+  if(s.type === 'rest') return 'Rest before next set';
+  return 'Time left, this segment';
+}
 
 function loadSegment(i){
   const s = currentRoutine.segments[i];
   kindEl.textContent = s.kind;
   activityEl.textContent = s.name;
   detailEl.textContent = s.detail;
-  tipBox.innerHTML = '<b>Technique:</b> ' + s.tip;
+  tipBox.innerHTML = s.type === 'rest' ? ('<b>Rest:</b> ' + s.tip) : ('<b>Technique:</b> ' + s.tip);
+  updateExerciseMedia(s.tipKey);
   const next = currentRoutine.segments[i+1];
   upNext.textContent = next ? next.name : 'Finish';
   roundCount.textContent = 'Segment ' + (i+1) + ' / ' + currentRoutine.segments.length;
   remaining = s.secs;
-  clockEl.textContent = fmt(remaining);
+  clockLabelEl.textContent = clockLabelFor(s);
+  renderClock(s, remaining);
+  lastRepIndex = s.type === 'reps' ? 1 : 0;
   renderSegBar();
   updateStats();
   speak(buildSay(s));
@@ -859,10 +1322,19 @@ function loadSegment(i){
 
 function tick(){
   remaining--;
-  clockEl.textContent = fmt(Math.max(remaining,0));
+  const seg = currentRoutine.segments[idx];
+  renderClock(seg, remaining);
   updateStats();
-  if(remaining === 10) beep(660,0.15);
-  if(remaining <= 3 && remaining > 0) beep(880,0.1);
+  if(seg.type === 'reps'){
+    const newRepIndex = repIndexFor(seg, remaining);
+    if(newRepIndex !== lastRepIndex && newRepIndex <= seg.reps){
+      lastRepIndex = newRepIndex;
+      beep(520, 0.08);
+    }
+  } else {
+    if(remaining === 10) beep(660,0.15);
+    if(remaining <= 3 && remaining > 0) beep(880,0.1);
+  }
   if(!midpointSaid && remaining === midpointMark && midpointMark > 8){
     midpointSaid = true;
     const line = pickEncouragement(currentRoutine.segments[idx].tipKey);
@@ -892,6 +1364,7 @@ function finish(){
   activityEl.textContent = 'Nice work';
   detailEl.textContent = 'Routine finished — grab some water and let your heart rate settle.';
   tipBox.innerHTML = '<b>Recovery tip:</b> Walk it out for a minute or two rather than stopping dead — it helps blood pressure ease down smoothly.';
+  exerciseMediaEl.classList.add('hidden');
   upNext.textContent = '—';
   barFill.style.width = '100%';
   const total = totalSecsOf(currentRoutine);
@@ -945,10 +1418,13 @@ function togglePause(){ running ? pause() : resume(); }
 function applyIdleDisplay(){
   rebuildSegbar();
   const first = currentRoutine.segments[0];
+  const totalMin = Math.round(totalSecsOf(currentRoutine)/60);
   kindEl.textContent = 'Ready';
   activityEl.textContent = currentRoutine.label;
-  detailEl.textContent = currentRoutine.desc + ' — ' + currentRoutine.duration + ' minutes total.';
+  detailEl.textContent = currentRoutine.desc + ' — ' + totalMin + ' minutes total' + (currentRoutine.duration===null ? ' (approx, depends on pace).' : '.');
   tipBox.innerHTML = '<b>Before you start:</b> Have water nearby, clear space around the bag, and check your wraps or gloves are snug.';
+  updateExerciseMedia(first.tipKey);
+  clockLabelEl.textContent = clockLabelFor(first);
   clockEl.textContent = fmt(first.secs);
   upNext.textContent = first.name;
   roundCount.textContent = 'Segment 1 / ' + currentRoutine.segments.length;
@@ -1379,9 +1855,14 @@ clearLogBtn.addEventListener('click', ()=>{
 });
 
 /* ---------------- Init ---------------- */
+updatePickerForStyle(selectedStyle);
 renderVariants();
 durationSlider.value = activeDuration;
 durationValueEl.textContent = activeDuration + ' min';
+tempoSlider.value = repTempo;
+tempoValueEl.textContent = repTempo + 's / rep';
+restSlider.value = restSecs;
+restValueEl.textContent = restSecs + 's';
 applyIdleDisplay();
 loadProfiles().then(loadLog);
 </script>
