@@ -471,18 +471,85 @@ const ENCOURAGE = {
   highKnees: ["Quick feet, pump those arms.", "Light and fast — knees up high."],
   coreTwist: ["Controlled rotation, not just arms.", "Keep the tempo steady through the twist."],
   cooldown: ["Breathe deep, let the heart rate settle.", "Nice work today — enjoy the stretch."],
-  dumbbellSquat: ["Chest up, weight through your heels.", "Control the descent, drive up through your legs."],
-  dumbbellRow: ["Flat back, pull with your elbows.", "Squeeze the shoulder blades at the top."],
-  dumbbellRDL: ["Hinge, don't squat — push the hips back.", "Feel the stretch, then drive the hips forward."],
-  dumbbellPress: ["Brace the core, press straight up.", "Controlled on the way down, not just up."],
-  dumbbellCurl: ["Elbows pinned, controlled curl up.", "Squeeze at the top, don't swing it."],
-  dumbbellTricep: ["Elbows steady, just the forearm moves.", "Controlled through the full range."],
-  dumbbellStepUp: ["Drive through that front heel.", "Control the step down, don't just drop."],
-  calfRaise: ["Full stretch at the bottom, full squeeze at the top.", "Slow and controlled, no bouncing."],
-  rest: ["Breathe, shake it out.", "Get ready — next set coming up."],
-  warmupMobility: ["Nice and controlled — you're just opening things up.", "Take your time here, no need to rush it."],
-  cooldownMobility: ["Ease into the stretch, don't force it.", "This is where the recovery starts."]
+  dumbbellSquat: ["Chest up, weight through your heels.", "Control the descent, drive up through your legs.", "Own every rep — no rushing the bottom.", "Good depth — keep that consistent."],
+  dumbbellRow: ["Flat back, pull with your elbows.", "Squeeze the shoulder blades at the top.", "Slow the lowering phase down a touch.", "Strong pull — keep the torso still."],
+  dumbbellRDL: ["Hinge, don't squat — push the hips back.", "Feel the stretch, then drive the hips forward.", "Soft knees, hips doing the work.", "Good tempo — stay patient through the stretch."],
+  dumbbellPress: ["Brace the core, press straight up.", "Controlled on the way down, not just up.", "Keep the ribs down as the weight goes overhead.", "Nice and steady — no leaning back."],
+  dumbbellCurl: ["Elbows pinned, controlled curl up.", "Squeeze at the top, don't swing it.", "Slow the lower — that's where the real work is.", "Good tempo, keep the shoulders still."],
+  dumbbellTricep: ["Elbows steady, just the forearm moves.", "Controlled through the full range.", "Keep those elbows tucked in tight.", "Nice and slow on the way down."],
+  dumbbellStepUp: ["Drive through that front heel.", "Control the step down, don't just drop.", "Stand tall — resist the urge to lean forward.", "Good control both ways."],
+  calfRaise: ["Full stretch at the bottom, full squeeze at the top.", "Slow and controlled, no bouncing.", "Hold that top position for a beat.", "Nice steady tempo."],
+  rest: ["Breathe, shake it out.", "Get ready — next set coming up.", "Grab some water if you need it.", "Reset your breathing before the next one."],
+  warmupMobility: ["Nice and controlled — you're just opening things up.", "Take your time here, no need to rush it.", "This is prepping the joints, not a workout in itself.", "Smooth and steady does the job."],
+  cooldownMobility: ["Ease into the stretch, don't force it.", "This is where the recovery starts.", "Breathe through it — no need to push the range.", "Let it release gradually, don't bounce."]
 };
+/* Multiple distinct coaching cues per exercise, cycled by set number, so
+   the "Technique" line isn't the identical sentence 3-4 times in a row
+   across the sets of one exercise. Falls back to the single TIPS entry
+   for anything not listed here (bag types, warmup/cooldown, etc). */
+const TIP_VARIANTS = {
+  dumbbellSquat: [
+    "Keep your chest up and weight through your heels — don't let your knees cave inward.",
+    "Control the descent — don't just drop into the bottom, own the movement both ways.",
+    "If your lower back rounds near the bottom, that's your depth limit for today — stop just above it."
+  ],
+  dumbbellRow: [
+    "Keep your back flat, not rounded — hinge from the hips, not the lower spine.",
+    "Pull with your elbow, not your hand — think about driving your elbow toward the ceiling.",
+    "Pause briefly at the top of each rep to really feel the squeeze in your back."
+  ],
+  dumbbellRDL: [
+    "This is a hip hinge, not a squat — knees stay soft, the movement comes from your glutes and hamstrings.",
+    "Keep the dumbbells close to your legs the whole way down — drifting forward strains your lower back.",
+    "You should feel this in your hamstrings, not your lower back — ease off the range if that's not the case."
+  ],
+  dumbbellPress: [
+    "Brace your core so you're not arching your lower back as the weights go overhead.",
+    "Press slightly forward, not straight up, so the weights clear your head comfortably.",
+    "If your shoulders are shrugging up to your ears, that's a sign to lighten the load next time."
+  ],
+  dumbbellCurl: [
+    "Keep your elbows pinned to your sides — don't let them drift forward as it gets harder.",
+    "Squeeze at the top for a beat before lowering — don't just let gravity do the work down.",
+    "If you're swinging your torso to help the weight up, that's the muscle telling you it's had enough good reps."
+  ],
+  dumbbellTricep: [
+    "Keep your elbows pointed forward and close to your head — only your forearms should move.",
+    "Lower slowly under control — the stretch at the bottom matters as much as the press at the top.",
+    "Keep your ribs down, don't let your back arch as the weight lowers behind your head."
+  ],
+  dumbbellStepUp: [
+    "Drive through the heel of the leading foot — don't push off with the trailing leg to help you up.",
+    "Control the step down as much as the step up — that's where a lot of the benefit actually happens.",
+    "Keep your torso upright rather than leaning forward to generate momentum."
+  ],
+  calfRaise: [
+    "Full range every rep — really rise onto your toes, then lower all the way down. Don't bounce.",
+    "Pause a beat at the very top before lowering — resist the urge to rush through these.",
+    "If your ankles are wobbling, slow down rather than speeding up to finish the set."
+  ],
+  plank: [
+    "Keep a straight line from shoulders to heels — don't let your hips sag or pike up.",
+    "Breathe normally through the hold — don't hold your breath, it just makes it feel harder.",
+    "Squeeze your glutes and brace your core — that's what actually holds the position, not your arms."
+  ],
+  pushup: [
+    "Keep your body in a straight line — don't let your hips sag toward the floor.",
+    "Lower until your chest nearly touches the floor — partial reps shortchange the work.",
+    "If full push-ups are breaking down, drop to your knees for the rest of the set rather than losing form."
+  ],
+  lunge: [
+    "Front knee tracks over your foot, not past it — keep the shin roughly vertical at the bottom.",
+    "Push through the front heel to stand, not the toes.",
+    "Keep your torso tall — leaning forward shifts the work away from your legs."
+  ]
+};
+function pickTip(key, setNumber){
+  const variants = TIP_VARIANTS[key];
+  if(variants && variants.length) return variants[(setNumber - 1) % variants.length];
+  return TIPS[key];
+}
+
 function pickEncouragement(tipKey){
   const bank = ENCOURAGE[tipKey];
   if(!bank || !bank.length) return null;
@@ -544,28 +611,28 @@ const STRENGTHTYPES = {
   coreTwist: { name:"Core Twists", detail:"Seated or standing rotational core twists.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="46" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="18" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M40 16 Q46 20 44 26" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2,3"/></svg>',
     video:'https://www.youtube.com/results?search_query=seated+standing+core+twist+exercise' },
-  dumbbellSquat: { name:"Goblet Squat", detail:"Hold one dumbbell vertically at your chest. Feet shoulder-width, squat down keeping your chest up, drive through your heels to stand.",
+  dumbbellSquat: { name:"Goblet Squat", detail:"Hold one 7.5kg dumbbell vertically at your chest with both hands. Feet shoulder-width, squat down keeping your chest up, drive through your heels to stand.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="27" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="37" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="28" r="3" fill="currentColor"/><line x1="32" y1="33" x2="23" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="23" y1="45" x2="21" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="33" x2="41" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="41" y1="45" x2="43" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=goblet+squat+form' },
-  dumbbellRow: { name:"Bent-Over Row", detail:"Hinge at the hips with a flat back, dumbbells hanging. Pull your elbows back past your ribs, squeeze your shoulder blades, lower under control.",
+  dumbbellRow: { name:"Bent-Over Row", detail:"Use two 7.5kg dumbbells. Hinge at the hips with a flat back, dumbbells hanging. Pull your elbows back past your ribs, squeeze your shoulder blades, lower under control.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="16" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="19" y1="20" x2="38" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="25" y1="24" x2="25" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="42" r="3" fill="currentColor"/><line x1="38" y1="34" x2="34" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="50" x2="34" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="34" x2="46" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="50" x2="46" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=dumbbell+bent+over+row+form' },
-  dumbbellRDL: { name:"Romanian Deadlift", detail:"Soft knees, hinge at the hips pushing them back, dumbbells close to your legs. Feel the hamstring stretch, then drive your hips forward to stand.",
+  dumbbellRDL: { name:"Romanian Deadlift", detail:"Use two 7.5kg dumbbells. Soft knees, hinge at the hips pushing them back, dumbbells close to your legs. Feel the hamstring stretch, then drive your hips forward to stand.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="18" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="21" y1="18" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="22" x2="26" y2="52" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="54" r="3" fill="currentColor"/><line x1="40" y1="30" x2="36" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="48" x2="36" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="48" y2="48" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="48" y1="48" x2="48" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=dumbbell+romanian+deadlift+form' },
-  dumbbellPress: { name:"Standing Shoulder Press", detail:"Dumbbells at shoulder height, palms forward. Press straight overhead without arching your back, lower under control.",
+  dumbbellPress: { name:"Standing Shoulder Press", detail:"Use two 5kg dumbbells — start lighter on overhead pressing. Dumbbells at shoulder height, palms forward. Press straight overhead without arching your back, lower under control.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="20" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="4" r="3" fill="currentColor"/><line x1="32" y1="18" x2="44" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="46" cy="4" r="3" fill="currentColor"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=standing+dumbbell+shoulder+press+form' },
-  dumbbellCurl: { name:"Bicep Curl", detail:"Elbows pinned to your sides, curl the dumbbells up toward your shoulders, squeeze, then lower under control — don't swing your body to help it up.",
+  dumbbellCurl: { name:"Bicep Curl", detail:"Use two 5kg dumbbells. Elbows pinned to your sides, curl the dumbbells up toward your shoulders, squeeze, then lower under control — don't swing your body to help it up.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="34" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="18" r="3" fill="currentColor"/><line x1="32" y1="20" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=dumbbell+bicep+curl+form' },
-  dumbbellTricep: { name:"Overhead Tricep Extension", detail:"Hold one dumbbell with both hands overhead, lower it behind your head by bending only at the elbows, then extend back up.",
+  dumbbellTricep: { name:"Overhead Tricep Extension", detail:"Use one 7.5kg dumbbell, held with both hands. Hold it overhead, lower it behind your head by bending only at the elbows, then extend back up.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="28" y1="16" x2="30" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="4" x2="24" y2="14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="16" r="3" fill="currentColor"/><line x1="36" y1="16" x2="38" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=dumbbell+overhead+tricep+extension+form' },
-  dumbbellStepUp: { name:"Step-Up", detail:"Step up onto a sturdy chair or low step holding a dumbbell in each hand. Drive through the front heel, step down with control, and switch leading leg each set.",
+  dumbbellStepUp: { name:"Step-Up", detail:"Use two 7.5kg dumbbells, one in each hand. Step up onto a sturdy chair or low step. Drive through the front heel, step down with control, and switch leading leg each set.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="26" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="26" y1="14" x2="26" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="34" x2="18" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="18" y1="46" x2="18" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="34" x2="36" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="30" x2="40" y2="24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="10" y1="56" x2="54" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="30" y1="30" x2="54" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=dumbbell+step+up+form' },
-  calfRaise: { name:"Calf Raise", detail:"Standing tall, holding a dumbbell in each hand, rise up onto your toes, pause briefly at the top, then lower all the way down under control.",
+  calfRaise: { name:"Calf Raise", detail:"Use two 7.5kg dumbbells, one in each hand. Standing tall, rise up onto your toes, pause briefly at the top, then lower all the way down under control.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="40" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="26" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="38" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="54" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="54" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
     video:'https://www.youtube.com/results?search_query=standing+dumbbell+calf+raise+form' }
 };
@@ -741,6 +808,10 @@ function buildResistanceRoutine(style, tempo, restSecs){
       detail:w.detail, tip:w.tip, tipKey:'warmupMobility' });
   });
 
+  segments.push({ kind:"Get Ready", name:"Get Ready", type:'transition', secs:10,
+    detail:"Grab your dumbbells and get into position for the first exercise.",
+    tip:"Grab your dumbbells and get into position.", tipKey:'transition' });
+
   exercises.forEach((ex, exIdx)=>{
     const info = STRENGTHTYPES[ex.key];
     for(let set=1; set<=ex.sets; set++){
@@ -748,13 +819,13 @@ function buildResistanceRoutine(style, tempo, restSecs){
         const secs = Math.round(ex.reps * tempo);
         segments.push({
           kind: info.name + " — Set " + set + "/" + ex.sets, name: info.name,
-          detail: info.detail, tip: TIPS[ex.key], tipKey: ex.key,
+          detail: info.detail, tip: pickTip(ex.key, set), tipKey: ex.key,
           type:'reps', reps: ex.reps, tempo: tempo, secs: secs
         });
       } else {
         segments.push({
           kind: info.name + " — Set " + set + "/" + ex.sets, name: info.name,
-          detail: info.detail, tip: TIPS[ex.key], tipKey: ex.key,
+          detail: info.detail, tip: pickTip(ex.key, set), tipKey: ex.key,
           type:'hold', secs: ex.holdSecs
         });
       }
@@ -766,6 +837,10 @@ function buildResistanceRoutine(style, tempo, restSecs){
       }
     }
   });
+
+  segments.push({ kind:"Get Ready", name:"Get Ready", type:'transition', secs:10,
+    detail:"Set your dumbbells down and get ready for the cool-down stretches.",
+    tip:"Set your dumbbells down and get ready to stretch.", tipKey:'transition' });
 
   RESISTANCE_COOLDOWN.forEach(c=>{
     segments.push({ kind:"Cool-down — " + c.name, secs:c.secs, name:c.name, type:'time',
@@ -801,6 +876,7 @@ let idx = -1;
 let remaining = 0;
 let timerId = null;
 let running = false;
+let runningTab = null;
 let elapsedBefore = 0;
 let selectedVoice = null;
 let availableVoices = [];
@@ -921,12 +997,36 @@ function styleMatchesTab(style, tab){
   return true;
 }
 
-function switchTab(tab){
-  if(running) return;
-  activeTab = tab;
+function updateTabActiveClasses(tab){
   Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=>{
     b.classList.toggle('active', b.dataset.tab === tab);
   });
+}
+
+function switchTab(tab){
+  if(running){
+    /* Mid-workout: Library is always reachable (to check a technique video),
+       and you can always get back to the live session's own tab. Switching
+       to the OTHER session type (e.g. Bag while a Resistance workout is
+       running) is blocked — that would abandon the in-progress routine. */
+    if(tab === 'library'){
+      activeTab = 'library';
+      updateTabActiveClasses('library');
+      sessionViewEl.classList.add('hidden');
+      libraryViewEl.classList.remove('hidden');
+      renderLibrary();
+    } else if(tab === runningTab){
+      activeTab = runningTab;
+      updateTabActiveClasses(runningTab);
+      sessionViewEl.classList.remove('hidden');
+      libraryViewEl.classList.add('hidden');
+      /* Deliberately no rebuildCurrentRoutine()/applyIdleDisplay() here —
+         the timer keeps running in the background; this just re-shows it. */
+    }
+    return;
+  }
+  activeTab = tab;
+  updateTabActiveClasses(tab);
   if(tab === 'library'){
     sessionViewEl.classList.add('hidden');
     libraryViewEl.classList.remove('hidden');
@@ -951,7 +1051,12 @@ Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(btn=>{
 });
 
 function lockTabs(lock){
-  Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=> b.classList.toggle('locked', lock));
+  Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=>{
+    const t = b.dataset.tab;
+    if(t === 'library'){ b.classList.remove('locked'); return; }
+    if(lock && t === runningTab){ b.classList.remove('locked'); return; }
+    b.classList.toggle('locked', lock);
+  });
 }
 
 /* ---------------- Library ---------------- */
@@ -1296,6 +1401,7 @@ function renderClock(s, remainingSecs){
 function clockLabelFor(s){
   if(s.type === 'reps') return 'Reps this set';
   if(s.type === 'rest') return 'Rest before next set';
+  if(s.type === 'transition') return 'Get ready';
   return 'Time left, this segment';
 }
 
@@ -1304,7 +1410,9 @@ function loadSegment(i){
   kindEl.textContent = s.kind;
   activityEl.textContent = s.name;
   detailEl.textContent = s.detail;
-  tipBox.innerHTML = s.type === 'rest' ? ('<b>Rest:</b> ' + s.tip) : ('<b>Technique:</b> ' + s.tip);
+  if(s.type === 'rest') tipBox.innerHTML = '<b>Rest:</b> ' + s.tip;
+  else if(s.type === 'transition') tipBox.innerHTML = '<b>Get Ready:</b> ' + s.tip;
+  else tipBox.innerHTML = '<b>Technique:</b> ' + s.tip;
   updateExerciseMedia(s.tipKey);
   const next = currentRoutine.segments[i+1];
   upNext.textContent = next ? next.name : 'Finish';
@@ -1358,6 +1466,7 @@ function advance(){
 function finish(){
   clearInterval(timerId);
   running = false;
+  runningTab = null;
   beep(520,0.2);
   setTimeout(()=>beep(780,0.25), 220);
   kindEl.textContent = 'Complete';
@@ -1387,6 +1496,7 @@ function finish(){
 function start(){
   if(running) return;
   running = true;
+  runningTab = activeTab;
   startBtn.disabled = true;
   pauseBtn.disabled = false;
   pauseBtn.textContent = 'Pause';
@@ -1444,6 +1554,7 @@ function reset(){
   window.speechSynthesis.cancel();
   disableStayAwake();
   running = false;
+  runningTab = null;
   idx = -1;
   remaining = 0;
   elapsedBefore = 0;
