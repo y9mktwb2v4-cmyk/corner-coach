@@ -447,7 +447,12 @@ const TIPS = {
   dumbbellTricep: "Keep your elbows pointed forward and close to your head — only your forearms should move.",
   dumbbellStepUp: "Drive through the heel of the leading foot — don't push off with the trailing leg to help you up.",
   calfRaise: "Full range every rep — really rise onto your toes, then lower all the way down. Don't bounce.",
-  rest: "Use this to breathe, shake your arms out, and get into position for the next set."
+  rest: "Use this to breathe, shake your arms out, and get into position for the next set.",
+  dumbbellLateralRaise: "Lead with your elbows, and stop right at shoulder height — no higher.",
+  kidSquat: "Keep your back straight and your chest up as you squat down.",
+  kidRow: "Keep your back flat, pull with your elbow not your hand.",
+  kidPress: "Keep it light and controlled — press straight up, don't jerk it.",
+  kidCurl: "Keep your elbows still, only your forearms move."
 };
 
 /* ---------------- Mid-segment encouragement library ---------------- */
@@ -481,7 +486,12 @@ const ENCOURAGE = {
   calfRaise: ["Full stretch at the bottom, full squeeze at the top.", "Slow and controlled, no bouncing.", "Hold that top position for a beat.", "Nice steady tempo."],
   rest: ["Breathe, shake it out.", "Get ready — next set coming up.", "Grab some water if you need it.", "Reset your breathing before the next one."],
   warmupMobility: ["Nice and controlled — you're just opening things up.", "Take your time here, no need to rush it.", "This is prepping the joints, not a workout in itself.", "Smooth and steady does the job."],
-  cooldownMobility: ["Ease into the stretch, don't force it.", "This is where the recovery starts.", "Breathe through it — no need to push the range.", "Let it release gradually, don't bounce."]
+  cooldownMobility: ["Ease into the stretch, don't force it.", "This is where the recovery starts.", "Breathe through it — no need to push the range.", "Let it release gradually, don't bounce."],
+  dumbbellLateralRaise: ["Good height, right at the shoulder.", "Nice control on the way down.", "Elbows leading the way.", "Steady arms, good tempo."],
+  kidSquat: ["Nice and controlled!", "Great squat depth!", "Chest up, strong legs!", "Nice steady pace!"],
+  kidRow: ["Good pull!", "Nice and steady!", "Elbow driving back well!", "Good control!"],
+  kidPress: ["Light and controlled, nice!", "Good pressing!", "Steady does it!", "Nice and smooth!"],
+  kidCurl: ["Nice squeeze at the top!", "Good control!", "Elbows staying still — great!", "Nice slow lowering!"]
 };
 /* Multiple distinct coaching cues per exercise, cycled by set number, so
    the "Technique" line isn't the identical sentence 3-4 times in a row
@@ -542,6 +552,31 @@ const TIP_VARIANTS = {
     "Front knee tracks over your foot, not past it — keep the shin roughly vertical at the bottom.",
     "Push through the front heel to stand, not the toes.",
     "Keep your torso tall — leaning forward shifts the work away from your legs."
+  ],
+  dumbbellLateralRaise: [
+    "Lead with your elbows, not your hands.",
+    "Stop at shoulder height — going higher just shrugs the traps, not the shoulders.",
+    "Keep a slight bend in your elbows the whole way — locked-out arms strain the joint."
+  ],
+  kidSquat: [
+    "Keep your back straight and your chest up the whole way down.",
+    "Go down slow, stand up strong — no rushing it.",
+    "Feet flat on the floor the whole time, don't rise up on your toes."
+  ],
+  kidRow: [
+    "Keep your back flat, like a table top.",
+    "Pull with your elbow, not just your hand.",
+    "Nice and steady — this arm's turn to work."
+  ],
+  kidPress: [
+    "Keep it light and controlled — no jerking the weight up.",
+    "Press straight up, not out to the sides.",
+    "Lower it slowly, don't just let it drop."
+  ],
+  kidCurl: [
+    "Keep your elbows still, only your forearms move.",
+    "Squeeze at the top before lowering slowly.",
+    "No swinging your body to help the weight up."
   ]
 };
 function pickTip(key, setNumber){
@@ -634,7 +669,22 @@ const STRENGTHTYPES = {
     video:'https://www.youtube.com/results?search_query=dumbbell+step+up+form' },
   calfRaise: { name:"Calf Raise", detail:"Use two 7.5kg dumbbells, one in each hand. Standing tall, rise up onto your toes, pause briefly at the top, then lower all the way down under control.",
     img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="40" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="26" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="38" y2="54" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="26" y1="54" x2="26" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="54" x2="38" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
-    video:'https://www.youtube.com/results?search_query=standing+dumbbell+calf+raise+form' }
+    video:'https://www.youtube.com/results?search_query=standing+dumbbell+calf+raise+form' },
+  dumbbellLateralRaise: { name:"Lateral Raise", detail:"Use light dumbbells — around 1-1.5kg for adults, 0.5kg for younger athletes. Hold one in each hand at your sides, raise both arms out to shoulder height, then lower under control.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="12" y2="22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="22" r="3" fill="currentColor"/><line x1="32" y1="20" x2="52" y2="22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="54" cy="22" r="3" fill="currentColor"/><line x1="32" y1="42" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="42" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=dumbbell+lateral+raise+form' },
+  kidSquat: { name:"Light Squat Hold", detail:"Hold one light dumbbell (0.5-1kg) at your chest with both hands. Feet shoulder-width, squat down keeping your chest up, then stand back up.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="27" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="37" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="28" r="3" fill="currentColor"/><line x1="32" y1="33" x2="23" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="23" y1="45" x2="21" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="33" x2="41" y2="45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="41" y1="45" x2="43" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=kids+dumbbell+squat+form+beginner' },
+  kidRow: { name:"Supported Row", detail:"Rest one hand on a chair or table for support. Hold a 1kg dumbbell in the other hand, pull your elbow back past your ribs, then lower under control. Swap arms halfway through the set.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="16" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="19" y1="20" x2="38" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="25" y1="24" x2="25" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="25" cy="42" r="3" fill="currentColor"/><line x1="38" y1="34" x2="34" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="34" y1="50" x2="34" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="34" x2="46" y2="50" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="46" y1="50" x2="46" y2="60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=single+arm+supported+dumbbell+row+beginner' },
+  kidPress: { name:"Light Overhead Press", detail:"Hold two 0.5kg dumbbells at your shoulders, palms forward. Press gently overhead, then lower under control — light and controlled, not fast.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="18" x2="20" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="4" r="3" fill="currentColor"/><line x1="32" y1="18" x2="44" y2="6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="46" cy="4" r="3" fill="currentColor"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=kids+light+dumbbell+shoulder+press+beginner' },
+  kidCurl: { name:"Light Bicep Curl", detail:"Hold one 1kg dumbbell in each hand, elbows by your sides. Curl up slowly, squeeze, then lower under control.",
+    img:'<svg viewBox="0 0 64 64" width="56" height="56"><circle cx="32" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="3"/><line x1="32" y1="14" x2="32" y2="40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="20" x2="40" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="40" y1="30" x2="34" y2="20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="18" r="3" fill="currentColor"/><line x1="32" y1="20" x2="24" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="24" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="32" y1="40" x2="40" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    video:'https://www.youtube.com/results?search_query=kids+light+dumbbell+bicep+curl+beginner' }
 };
 
 /* ---------------- Style presets ---------------- */
@@ -657,13 +707,14 @@ const STYLES = [
       {key:'dumbbellPress', sets:3, reps:10},
       {key:'plank', sets:3, holdSecs:40}
     ]} },
-  { id:'dumbbell-upper', label:"Dumbbell — Upper Focus", desc:"No bag — push, pull, press, arms, core", mode:'adult',
+  { id:'dumbbell-upper', label:"Dumbbell — Upper Focus", desc:"No bag — push, pull, press, arms, shoulders, core", mode:'adult',
     resistance:{ restBetweenSets:45, exercises:[
       {key:'pushup', sets:3, reps:12},
       {key:'dumbbellRow', sets:3, reps:12},
       {key:'dumbbellPress', sets:3, reps:10},
       {key:'dumbbellCurl', sets:3, reps:12},
       {key:'dumbbellTricep', sets:3, reps:12},
+      {key:'dumbbellLateralRaise', sets:2, reps:15},
       {key:'plank', sets:2, holdSecs:40}
     ]} },
   { id:'dumbbell-lower', label:"Dumbbell — Lower Focus", desc:"No bag — squat, hinge, lunge, step-up, calves, core", mode:'adult',
@@ -674,6 +725,24 @@ const STYLES = [
       {key:'dumbbellStepUp', sets:3, reps:10},
       {key:'calfRaise', sets:3, reps:15},
       {key:'plank', sets:3, holdSecs:45}
+    ]} },
+
+  { id:'junior-strength-full', label:"Junior Strength — Full Body", desc:"Light weights, technique-first, supervised", mode:'kid',
+    resistance:{ restBetweenSets:30, exercises:[
+      {key:'kidSquat', sets:2, reps:10},
+      {key:'pushup', sets:2, reps:8},
+      {key:'kidRow', sets:2, reps:10},
+      {key:'lunge', sets:2, reps:8},
+      {key:'kidPress', sets:2, reps:8},
+      {key:'plank', sets:2, holdSecs:20}
+    ]} },
+  { id:'junior-strength-core', label:"Junior Strength — Core & Balance", desc:"Bodyweight-focused, light arm work, supervised", mode:'kid',
+    resistance:{ restBetweenSets:30, exercises:[
+      {key:'plank', sets:2, holdSecs:20},
+      {key:'lunge', sets:2, reps:8},
+      {key:'kidCurl', sets:2, reps:10},
+      {key:'highKnees', sets:2, holdSecs:20},
+      {key:'coreTwist', sets:2, holdSecs:20}
     ]} },
 
   { id:'junior-combos', label:"Junior Combos", desc:"Technique and footwork, medium pace", mode:'kid',
@@ -802,9 +871,11 @@ const RESISTANCE_COOLDOWN = [
    between different exercises, so breaks are never silent/implicit. */
 function buildResistanceRoutine(style, tempo, restSecs){
   const exercises = style.resistance.exercises;
+  const isKid = style.mode === 'kid';
   const segments = [];
   RESISTANCE_WARMUP.forEach(w=>{
-    segments.push({ kind:"Warm-up — " + w.name, secs:w.secs, name:w.name, type:'time',
+    const secs = isKid ? Math.round(w.secs / 2) : w.secs;
+    segments.push({ kind:"Warm-up — " + w.name, secs:secs, name:w.name, type:'time',
       detail:w.detail, tip:w.tip, tipKey:'warmupMobility' });
   });
 
@@ -843,7 +914,8 @@ function buildResistanceRoutine(style, tempo, restSecs){
     tip:"Set your dumbbells down and get ready to stretch.", tipKey:'transition' });
 
   RESISTANCE_COOLDOWN.forEach(c=>{
-    segments.push({ kind:"Cool-down — " + c.name, secs:c.secs, name:c.name, type:'time',
+    const secs = isKid ? Math.round(c.secs / 2) : c.secs;
+    segments.push({ kind:"Cool-down — " + c.name, secs:secs, name:c.name, type:'time',
       detail:c.detail, tip:c.tip, tipKey:'cooldownMobility' });
   });
 
