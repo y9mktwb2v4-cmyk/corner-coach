@@ -139,6 +139,7 @@
   .caption b{ font-style:normal; color:var(--tape); text-transform:uppercase; font-size:11px; letter-spacing:0.15em; display:block; margin-bottom:3px; }
   .exercise-media{ display:flex; align-items:center; gap:16px; background:var(--canvas-dim); border-radius:2px; padding:14px 16px; margin-bottom:18px; }
   .exercise-icon{ flex:none; color:var(--leather-bright); display:flex; }
+  .exercise-icon img{ width:100px; height:100px; display:block; }
   .exercise-icon svg{ display:block; }
   .exercise-video-link{ font-size:13px; font-weight:700; color:var(--info); text-decoration:none; border-bottom:1px solid var(--info); }
   .hidden{ display:none !important; }
@@ -160,6 +161,7 @@
   .lib-item{ display:flex; gap:16px; align-items:center; padding:14px 0; border-top:1px solid #d0cab8; }
   .lib-group .lib-item:first-of-type{ border-top:none; }
   .lib-item-icon{ flex:none; color:var(--leather-bright); }
+  .lib-item-icon img{ width:140px; height:140px; display:block; }
   .lib-item-body{ flex:1; }
   .lib-item-name{ font-weight:800; font-size:14px; margin-bottom:3px; }
   .lib-item-detail{ font-size:13px; color:#4a453d; line-height:1.4; margin-bottom:4px; }
@@ -184,7 +186,8 @@
   .segbar-row{ display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; }
   .segbar-label{ font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:#6b6558; font-weight:700; }
   .segbar{ display:flex; align-items:flex-end; gap:3px; height:16px; }
-  .seg{ flex:1; height:4px; background:var(--line); border-radius:2px; align-self:flex-end; }
+  .seg{ flex:1; height:4px; background:var(--line); border-radius:2px; align-self:flex-end; position:relative; cursor:pointer; }
+  .seg::before{ content:''; position:absolute; left:0; right:0; top:-10px; bottom:-10px; }
   .seg.major{ height:14px; background:#c7bfa8; }
   .seg.done{ background:var(--tape); }
   .seg.major.done{ background:var(--tape); }
@@ -198,7 +201,6 @@
   }
   #startBtn{ background:var(--leather-bright); color:var(--canvas); }
   #pauseBtn{ background:var(--canvas-dim); color:var(--ink); border:1px solid var(--line); }
-  #skipBtn{ background:var(--canvas-dim); color:var(--ink); border:1px solid var(--line); }
   #resetBtn{ background:transparent; color:var(--canvas-dim); border:1px solid var(--line); }
   button:disabled{ opacity:0.4; cursor:default; }
 
@@ -333,7 +335,6 @@
     <div class="controls">
       <button id="startBtn">Start</button>
       <button id="pauseBtn" disabled>Pause</button>
-      <button id="skipBtn" disabled>Skip ▸</button>
       <button id="resetBtn">Reset</button>
     </div>
   </div>
@@ -1157,7 +1158,6 @@ const segbar = document.getElementById('segbar');
 const exercisesLeftLabel = document.getElementById('exercisesLeftLabel');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
-const skipBtn = document.getElementById('skipBtn');
 const resetBtn = document.getElementById('resetBtn');
 const segElapsedEl = document.getElementById('segElapsed');
 const totalElapsedEl = document.getElementById('totalElapsed');
@@ -1498,6 +1498,9 @@ function speak(text){
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
+function safeCancelSpeech(){
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+}
 
 /* ---------------- Screen stay-awake (wake lock + fallback) ---------------- */
 let wakeLock = null;
@@ -1585,33 +1588,38 @@ function localeTag(l){
 }
 
 function populateVoices(){
-  const all = window.speechSynthesis.getVoices();
-  if(!all.length) return;
-  let filtered = all.filter(v => ALLOWED_LOCALES.some(loc => normLang(v.lang).indexOf(loc)===0));
-  let fallback = false;
-  if(!filtered.length){ filtered = all; fallback = true; }
-  availableVoices = filtered;
-  voiceSelect.innerHTML = '';
-  if(fallback){
-    const note = document.createElement('option');
-    note.disabled = true;
-    note.textContent = 'No UK/US/IE voices found — showing all';
-    voiceSelect.appendChild(note);
-  }
-  filtered.forEach((v,i)=>{
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = '[' + localeTag(v.lang) + '] ' + v.name + (v.default ? ' — default' : '');
-    voiceSelect.appendChild(opt);
-  });
-  const defaultIdx = filtered.findIndex(v=>v.default);
-  voiceSelect.value = defaultIdx >= 0 ? defaultIdx : 0;
-  selectedVoice = filtered[voiceSelect.value] || null;
+  try{
+    if(!window.speechSynthesis) return;
+    const all = window.speechSynthesis.getVoices();
+    if(!all.length) return;
+    let filtered = all.filter(v => ALLOWED_LOCALES.some(loc => normLang(v.lang).indexOf(loc)===0));
+    let fallback = false;
+    if(!filtered.length){ filtered = all; fallback = true; }
+    availableVoices = filtered;
+    voiceSelect.innerHTML = '';
+    if(fallback){
+      const note = document.createElement('option');
+      note.disabled = true;
+      note.textContent = 'No UK/US/IE voices found — showing all';
+      voiceSelect.appendChild(note);
+    }
+    filtered.forEach((v,i)=>{
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = '[' + localeTag(v.lang) + '] ' + v.name + (v.default ? ' — default' : '');
+      voiceSelect.appendChild(opt);
+    });
+    const defaultIdx = filtered.findIndex(v=>v.default);
+    voiceSelect.value = defaultIdx >= 0 ? defaultIdx : 0;
+    selectedVoice = filtered[voiceSelect.value] || null;
+  }catch(e){ /* voice list unavailable in this context — rest of the app still works */ }
 }
 populateVoices();
-if('onvoiceschanged' in window.speechSynthesis){
-  window.speechSynthesis.onvoiceschanged = populateVoices;
-}
+try{
+  if(window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis){
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+  }
+}catch(e){ /* not available in this context */ }
 voiceSelect.addEventListener('change', ()=>{
   selectedVoice = availableVoices[voiceSelect.value] || null;
 });
@@ -1640,7 +1648,7 @@ function rebuildSegbar(){
   segMajorFlags = [];
   segDomIndex = [];
   let lastGroupKey = null;
-  currentRoutine.segments.forEach(seg=>{
+  currentRoutine.segments.forEach((seg,fullIdx)=>{
     if(seg.type === 'rest'){
       segMajorFlags.push(false);
       segDomIndex.push(-1);
@@ -1653,6 +1661,7 @@ function rebuildSegbar(){
     lastGroupKey = gKey; // null (ungrouped) deliberately resets, so the group after a transition starts fresh
     const d = document.createElement('div');
     d.className = 'seg' + (major ? ' major' : '');
+    d.addEventListener('click', ()=> jumpToSegment(fullIdx));
     segbar.appendChild(d);
     segMajorFlags.push(major);
     segDomIndex.push(segbar.children.length - 1);
@@ -1795,7 +1804,6 @@ function finish(){
   startBtn.textContent = 'Restart';
   pauseBtn.disabled = true;
   pauseBtn.textContent = 'Pause';
-  skipBtn.disabled = true;
   lockPicker(false);
   disableStayAwake();
   speak("That's the routine done. Nice work. Walk it out for a minute and let your heart rate settle.");
@@ -1809,7 +1817,6 @@ function start(){
   startBtn.disabled = true;
   pauseBtn.disabled = false;
   pauseBtn.textContent = 'Pause';
-  skipBtn.disabled = false;
   lockPicker(true);
   enableStayAwake();
   if(idx === -1){
@@ -1823,7 +1830,7 @@ function start(){
 function pause(){
   running = false;
   clearInterval(timerId);
-  window.speechSynthesis.cancel();
+  safeCancelSpeech();
   disableStayAwake();
   pauseBtn.textContent = 'Resume';
 }
@@ -1835,15 +1842,20 @@ function resume(){
 }
 function togglePause(){ running ? pause() : resume(); }
 
-/* Jump straight to the next segment — for quickly previewing exercises/
-   illustrations without sitting through the real-time countdown. Counts
-   the skipped segment as elapsed (same as tick() does at remaining<=0)
-   so the stats/progress bar stay consistent. */
-function skipSegment(){
-  if(idx === -1) return;
-  window.speechSynthesis.cancel();
-  elapsedBefore += currentRoutine.segments[idx].secs;
-  advance();
+/* Tap any tick on the progress bar to jump straight there — forward or
+   back — without sitting through the real-time countdown. Mainly for
+   quickly previewing an exercise/illustration mid-session. Recomputes
+   elapsedBefore from scratch so stats/progress stay consistent however
+   far you jump. */
+function jumpToSegment(targetIdx){
+  if(idx === -1 || targetIdx === idx) return;
+  if(targetIdx < 0 || targetIdx >= currentRoutine.segments.length) return;
+  safeCancelSpeech();
+  let sum = 0;
+  for(let i = 0; i < targetIdx; i++) sum += currentRoutine.segments[i].secs;
+  elapsedBefore = sum;
+  idx = targetIdx;
+  loadSegment(idx);
 }
 
 function applyIdleDisplay(){
@@ -1872,12 +1884,11 @@ function applyIdleDisplay(){
   startBtn.textContent = 'Start';
   pauseBtn.disabled = true;
   pauseBtn.textContent = 'Pause';
-  skipBtn.disabled = true;
 }
 
 function reset(){
   clearInterval(timerId);
-  window.speechSynthesis.cancel();
+  safeCancelSpeech();
   disableStayAwake();
   running = false;
   runningTab = null;
@@ -1891,7 +1902,6 @@ function reset(){
 
 startBtn.addEventListener('click', start);
 pauseBtn.addEventListener('click', togglePause);
-skipBtn.addEventListener('click', skipSegment);
 resetBtn.addEventListener('click', reset);
 
 /* ---------------- Profiles ---------------- */
