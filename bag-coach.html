@@ -448,6 +448,18 @@
         <div class="voice-note">Each profile keeps its own separate training log — switch profiles from the pills on the main screen. "Kid" profiles get shorter durations (8-16 min) and gentler, medium-intensity routine styles instead of the adult ones. Saved to this device's browser storage; it won't follow you to a different phone or browser unless you're on a paid Claude plan viewing the published version, in which case it also syncs to your account.</div>
       </div>
 
+      <div class="section-title">Backup</div>
+      <div class="panel">
+        <div class="test-row">
+          <button id="exportBackupBtn">Export backup</button>
+          <button id="importBackupBtn">Import backup</button>
+          <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+        </div>
+        <div class="voice-note" id="backupStatusNote">
+          Saves your profiles, training log, weight log, and equipment settings to a file. Do this occasionally — especially before updating the app — so a storage reset doesn't lose your history. Export gives you a share sheet: pick "Save to Files" and, if it asks, choose to replace the previous backup rather than creating a new copy each time.
+        </div>
+      </div>
+
       <div class="section-title">Equipment &amp; training loads</div>
       <div class="panel" id="gearPanel"></div>
 
@@ -1940,6 +1952,97 @@ closeSettingsBtn.addEventListener('click', ()=> settingsOverlay.classList.remove
 settingsOverlay.addEventListener('click', (e)=>{
   if(e.target === settingsOverlay) settingsOverlay.classList.remove('open');
 });
+
+/* ---- Backup: export/import profiles, workout log, weight log, gear ---- */
+const BACKUP_KEYS = ['profiles', 'workout-log', 'weight-log', 'gear'];
+const backupStatusNote = document.getElementById('backupStatusNote');
+const backupDefaultNote = backupStatusNote.textContent;
+function showBackupStatus(msg, isError){
+  backupStatusNote.textContent = msg;
+  backupStatusNote.style.color = isError ? '#b23b3b' : '';
+  setTimeout(()=>{ backupStatusNote.textContent = backupDefaultNote; backupStatusNote.style.color = ''; }, 6000);
+}
+
+let downloadsCapPromise = null;
+function getDownloadsCap(){
+  if(!downloadsCapPromise){
+    downloadsCapPromise = (async () => {
+      try{
+        if(window.claude && window.claude.use) return await window.claude.use('downloads');
+      }catch(e){ /* not available in this view */ }
+      return null;
+    })();
+  }
+  return downloadsCapPromise;
+}
+
+document.getElementById('exportBackupBtn').addEventListener('click', async ()=>{
+  try{
+    const data = {};
+    for(const key of BACKUP_KEYS){
+      const raw = await store.get(key);
+      if(raw !== undefined) data[key] = raw;
+    }
+    const payload = JSON.stringify({ exportedAt: new Date().toISOString(), data }, null, 2);
+    const fileName = 'corner-coach-backup.json';
+
+    const downloads = await getDownloadsCap();
+    if(downloads){
+      const result = await downloads.save({ filename: fileName, data: payload });
+      showBackupStatus(result.status === 'saved'
+        ? 'Backup saved. If prompted, replace the previous one rather than keeping both.'
+        : 'Backup sent to the location you chose.');
+      return;
+    }
+
+    // Plain-page fallback (e.g. self-hosted on GitHub) — normal browser download.
+    if(navigator.share && navigator.canShare){
+      const file = new File([payload], fileName, { type: 'application/json' });
+      if(navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file], title: 'Corner Coach backup' });
+        showBackupStatus('Backup shared — choose "Save to Files" and replace the previous one if asked.');
+        return;
+      }
+    }
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showBackupStatus('Backup downloaded as ' + fileName + '.');
+  } catch(e){
+    if(e && (e.code === 'declined' || e.name === 'AbortError')) return; // user cancelled
+    showBackupStatus('Export failed — nothing was saved.', true);
+  }
+});
+
+document.getElementById('importBackupBtn').addEventListener('click', ()=>{
+  document.getElementById('importBackupFile').click();
+});
+document.getElementById('importBackupFile').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const data = parsed.data || parsed; // tolerate a bare key/value file too
+    let restored = 0;
+    for(const key of BACKUP_KEYS){
+      if(data[key] !== undefined){
+        await store.set(key, data[key]);
+        restored++;
+      }
+    }
+    if(!restored){ showBackupStatus('That file had no recognised backup data.', true); return; }
+    showBackupStatus('Backup restored (' + restored + ' item' + (restored === 1 ? '' : 's') + '). Reloading…');
+    setTimeout(()=> location.reload(), 1200);
+  } catch(e){
+    showBackupStatus('Import failed — that file could not be read.', true);
+  }
+});
+
 const pickerEl = document.getElementById('picker');
 const variantsEl = document.getElementById('variants');
 const durationRowEl = document.getElementById('durationRow');
