@@ -54,6 +54,9 @@
     background:var(--canvas-dim); color:var(--ink); font-size:16px;
     display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
   }
+  .icon-btn-sub{ width:28px; height:28px; font-size:13px; background:transparent; opacity:0.68; }
+  .icon-btn-sub.view-active{ opacity:1; background:var(--canvas-dim); }
+  .icon-btn.locked{ opacity:0.35; pointer-events:none; }
   .settings-overlay{
     display:none; position:fixed; inset:0; background:rgba(10,9,8,0.72);
     align-items:flex-start; justify-content:center; padding:40px 16px; z-index:50; overflow-y:auto;
@@ -319,6 +322,8 @@
     <div class="brand">Corner Coach</div>
     <div class="header-right">
       <div class="round-count" id="roundCount">Segment 1 / 10</div>
+      <button id="libraryBtn" class="icon-btn icon-btn-sub" aria-label="Exercise Library">📚</button>
+      <button id="logBtn" class="icon-btn icon-btn-sub" aria-label="Training &amp; weight log">📅</button>
       <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙</button>
     </div>
   </div>
@@ -328,7 +333,6 @@
   <div class="tab-bar" id="tabBar">
     <button class="tab-btn active" id="tabBagBtn" data-tab="bag">Bag</button>
     <button class="tab-btn" id="tabResistBtn" data-tab="resistance">Resistance</button>
-    <button class="tab-btn" id="tabLibraryBtn" data-tab="library">Library</button>
   </div>
 
   <div id="sessionView">
@@ -485,30 +489,32 @@
     </div>
   </div>
 
-  <div class="section-title">Weight log</div>
-  <div class="cal-panel" id="wlPanel"></div>
+  <div class="log-view hidden" id="logView">
+    <div class="section-title" style="margin-top:0;">Weight log</div>
+    <div class="cal-panel" id="wlPanel"></div>
 
-  <div class="section-title">Training log</div>
-  <div class="cal-panel">
-    <div class="totals-row">
-      <div class="cal-stat totals-week"><div class="label">This Week</div><div class="value" id="weekTotal">0 min</div></div>
-      <div class="cal-stat totals-month"><div class="label">This Month</div><div class="value" id="calYearMonthTotal">0 min</div></div>
-      <div class="cal-stat totals-year"><div class="label">This Year</div><div class="value" id="yearTotal">0 min</div></div>
+    <div class="section-title">Training log</div>
+    <div class="cal-panel">
+      <div class="totals-row">
+        <div class="cal-stat totals-week"><div class="label">This Week</div><div class="value" id="weekTotal">0 min</div></div>
+        <div class="cal-stat totals-month"><div class="label">This Month</div><div class="value" id="calYearMonthTotal">0 min</div></div>
+        <div class="cal-stat totals-year"><div class="label">This Year</div><div class="value" id="yearTotal">0 min</div></div>
+      </div>
+      <div class="cal-nav">
+        <button id="prevMonth">‹</button>
+        <div class="cal-month" id="calMonthLabel">—</div>
+        <button id="nextMonth">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-hint">Tap a day to see that day's sessions.</div>
+      <div class="cal-stats">
+        <div class="cal-stat"><div class="label">Shown Month</div><div class="value" id="monthMins">0 min</div></div>
+        <div class="cal-stat"><div class="label">Sessions</div><div class="value" id="monthSessions">0</div></div>
+      </div>
+      <div class="log-list" id="logList"></div>
+      <div class="sync-note" id="syncNote"></div>
+      <div class="clear-row"><button id="clearLogBtn">Clear history</button></div>
     </div>
-    <div class="cal-nav">
-      <button id="prevMonth">‹</button>
-      <div class="cal-month" id="calMonthLabel">—</div>
-      <button id="nextMonth">›</button>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div class="cal-hint">Tap a day to see that day's sessions.</div>
-    <div class="cal-stats">
-      <div class="cal-stat"><div class="label">Shown Month</div><div class="value" id="monthMins">0 min</div></div>
-      <div class="cal-stat"><div class="label">Sessions</div><div class="value" id="monthSessions">0</div></div>
-    </div>
-    <div class="log-list" id="logList"></div>
-    <div class="sync-note" id="syncNote"></div>
-    <div class="clear-row"><button id="clearLogBtn">Clear history</button></div>
   </div>
 </div>
 
@@ -1761,20 +1767,14 @@ function renderRxPanel(){
   const st = selectedStyle;
   if(!st || !st.resistance){ rxPanelEl.classList.add('hidden'); return; }
   const plan = planSession(st, activeProfileId);
-  let h = '<div class="rx-title">Today\'s feat</div>';
+  let h = '<div class="rx-title">Your next feat</div>';
   if(plan.deload) h += '<div class="rx-flag">Deload session (every 5th): 2 sets per exercise, same weights, to recover.</div>';
   if(plan.benchMissing) h += '<div class="rx-flag rx-warn">This session uses the bench. Bench is marked "not available" in Settings.</div>';
   plan.items.forEach(it => {
     const r = it.r, info = STRENGTHTYPES[it.key];
     let line = it.sets + ' &times; ' + volText(r, it.vol);
     if(r.kind === 'load') line += ' &middot; ' + loadText(r, it.weight);
-    let last = 'First time';
-    if(it.last){
-      last = 'Last: ' + (r.kind==='load' ? (fmtKg(it.last.weightKg||0) + ' ') : '') + volText(r, volOf(it.last, r)).replace(' each side','') + ', ' + effLabel(it.last.effort).toLowerCase();
-    }
     h += '<div class="rx-row"><div class="rx-name">' + escapeHtml(info.name) + '</div><div class="rx-line">' + line + '</div>'
-      + '<div class="rx-last">' + escapeHtml(last) + '</div>'
-      + (it.note ? '<div class="rx-note">' + escapeHtml(it.note) + '</div>' : '')
       + ((it.mode === 'drop' || it.mode === 'pain') && TECH[it.key] ? '<details class="lib-tech"><summary>Review technique</summary>' + techHtml(it.key) + '</details>' : '')
       + '</div>';
   });
@@ -2060,6 +2060,9 @@ const restValueEl = document.getElementById('restValue');
 const tabBarEl = document.getElementById('tabBar');
 const sessionViewEl = document.getElementById('sessionView');
 const libraryViewEl = document.getElementById('libraryView');
+const logViewEl = document.getElementById('logView');
+const libraryBtnEl = document.getElementById('libraryBtn');
+const logBtnEl = document.getElementById('logBtn');
 const libraryFilterEl = document.getElementById('libraryFilter');
 const libraryListEl = document.getElementById('libraryList');
 const statSegElapsedEl = document.getElementById('statSegElapsed');
@@ -2162,14 +2165,24 @@ function switchTab(tab){
   Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=>{
     b.classList.toggle('active', b.dataset.tab === tab);
   });
+  libraryBtnEl.classList.toggle('view-active', tab === 'library');
+  logBtnEl.classList.toggle('view-active', tab === 'log');
   if(tab === 'library'){
     sessionViewEl.classList.add('hidden');
+    logViewEl.classList.add('hidden');
     libraryViewEl.classList.remove('hidden');
     renderLibrary();
     return;
   }
+  if(tab === 'log'){
+    sessionViewEl.classList.add('hidden');
+    libraryViewEl.classList.add('hidden');
+    logViewEl.classList.remove('hidden');
+    return;
+  }
   sessionViewEl.classList.remove('hidden');
   libraryViewEl.classList.add('hidden');
+  logViewEl.classList.add('hidden');
   if(!styleMatchesTab(selectedStyle, tab)){
     const type = activeProfile().type;
     const firstMatch = STYLES.find(r => r.mode===type && styleMatchesTab(r, tab));
@@ -2184,9 +2197,13 @@ function switchTab(tab){
 Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(btn=>{
   btn.addEventListener('click', ()=> switchTab(btn.dataset.tab));
 });
+libraryBtnEl.addEventListener('click', ()=> switchTab('library'));
+logBtnEl.addEventListener('click', ()=> switchTab('log'));
 
 function lockTabs(lock){
   Array.from(tabBarEl.querySelectorAll('.tab-btn')).forEach(b=> b.classList.toggle('locked', lock));
+  libraryBtnEl.classList.toggle('locked', lock);
+  logBtnEl.classList.toggle('locked', lock);
 }
 
 /* ---------------- Library ---------------- */
